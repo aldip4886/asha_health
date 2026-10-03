@@ -11,7 +11,7 @@ export function resolveVisualPersona(sex: SexSelection | null): ResolvedVisualPe
   if (sex === 'male') {
     return {
       type: 'female_active',
-      asset: 'pics/Hijabi Athlete in Mauve Activewear.png',
+      asset: '',
       labelEn: 'Female active companion',
       labelId: 'Pendamping aktif perempuan'
     };
@@ -20,7 +20,7 @@ export function resolveVisualPersona(sex: SexSelection | null): ResolvedVisualPe
   if (sex === 'female') {
     return {
       type: 'male_active',
-      asset: 'pics/Modern Activewear Duo in White Studio.png',
+      asset: '',
       labelEn: 'Male active companion',
       labelId: 'Pendamping aktif laki-laki'
     };
@@ -28,9 +28,9 @@ export function resolveVisualPersona(sex: SexSelection | null): ResolvedVisualPe
 
   return {
     type: 'neutral',
-    asset: 'pics/Minimalist Fitness Portrait with Negative Space.png',
-    labelEn: 'Neutral ASHA studio background',
-    labelId: 'Latar netral ASHA'
+    asset: '',
+    labelEn: 'Neutral ASHA theme',
+    labelId: 'Tema netral ASHA'
   };
 }
 
@@ -38,16 +38,8 @@ export function applyPersonaBackgroundToDom(sex: SexSelection | null): ResolvedV
   const persona = resolveVisualPersona(sex);
 
   if (typeof document !== 'undefined') {
-    document.documentElement.style.setProperty(
-      '--asha-persona-background',
-      `url("${persona.asset}")`
-    );
-    document.body.classList.add('persona-transition');
-    setTimeout(() => {
-      if (typeof document !== 'undefined' && document.body) {
-        document.body.classList.remove('persona-transition');
-      }
-    }, 400);
+    document.documentElement.style.setProperty('--asha-persona-background', 'none');
+    document.body.style.backgroundImage = 'none';
   }
 
   return persona;

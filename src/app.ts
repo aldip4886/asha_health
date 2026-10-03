@@ -320,42 +320,51 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
     state.confirmation.confirmed = false;
   }
 
+  function escapeAttr(val: string | number | null | undefined): string {
+    if (val === null || val === undefined) return '';
+    return String(val)
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
   function renderStep4GoalSection(isId: boolean): string {
     const aspiration = state.goal.aspiration;
     let targetStageHtml = '';
 
     if (aspiration === 'build_muscle') {
       targetStageHtml = `
-        <label>
+        <label class="form-label">
           <span>${isId ? 'Muscle Mass (% dari berat badan)' : 'Muscle Mass (% of body weight)'}</span>
-          <input type="number" step="0.1" data-field="muscleMassPercent" value="${
+          <input type="number" step="0.1" class="form-control" data-field="muscleMassPercent" value="${
             state.goal.muscleMassPercent ?? ''
           }" placeholder="42" />
         </label>
       `;
     } else if (aspiration === 'fat_loss') {
       targetStageHtml = `
-        <label>
+        <label class="form-label">
           <span>${
             isId ? 'Fat Percentage (% dari berat badan)' : 'Fat Percentage (% of body weight)'
           }</span>
-          <input type="number" step="0.1" data-field="fatPercent" value="${
+          <input type="number" step="0.1" class="form-control" data-field="fatPercent" value="${
             state.goal.fatPercent ?? ''
           }" placeholder="18" />
         </label>
       `;
     } else if (aspiration === 'weight_loss') {
       targetStageHtml = `
-        <label>
+        <label class="form-label">
           <span>${isId ? 'Target Weight (Kg)' : 'Target Weight (Kg)'}</span>
-          <input type="number" step="0.1" data-field="targetWeightKg" value="${
+          <input type="number" step="0.1" class="form-control" data-field="targetWeightKg" value="${
             state.goal.targetWeightKg ?? ''
           }" placeholder="65" />
         </label>
       `;
     } else if (aspiration === 'improve_mobility') {
       targetStageHtml = `
-        <p class="asha-stage-note">${
+        <p class="asha-stage-note alert alert-warning mb-0">${
           isId
             ? 'Improve Mobility dipilih — silakan langsung tentukan target waktu Anda di bawah.'
             : 'Improve Mobility selected — you may proceed directly to set your target timeframe below.'
@@ -363,16 +372,16 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
       `;
     } else if (aspiration === 'improve_overall_health') {
       targetStageHtml = `
-        <label>
+        <label class="form-label">
           <span>${isId ? 'Target Spesifik (Opsional)' : 'Specific Target (Optional)'}</span>
-          <input type="text" data-field="target" value="${state.goal.target ?? ''}" />
+          <input type="text" class="form-control" data-field="target" value="${escapeAttr(state.goal.target)}" />
         </label>
       `;
     } else if (aspiration === 'running_performance') {
       targetStageHtml = `
-        <label>
+        <label class="form-label">
           <span>${isId ? 'Jarak Lari' : 'Running Distance'}</span>
-          <select data-field="runningDistance">
+          <select class="form-select" data-field="runningDistance">
             <option value="" ${!state.goal.runningDistance ? 'selected' : ''}>${
               isId ? '-- Pilih Jarak --' : '-- Select Distance --'
             }</option>
@@ -386,17 +395,17 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
             }>Full Marathon</option>
           </select>
         </label>
-        <label>
+        <label class="form-label">
           <span>${isId ? 'Target Pace (menit/km atau waktu tempuh)' : 'Target Pace'}</span>
-          <input type="text" data-field="targetPace" value="${
-            state.goal.targetPace ?? ''
-          }" placeholder="5:30 /km" />
+          <input type="text" class="form-control" data-field="targetPace" value="${escapeAttr(
+            state.goal.targetPace
+          )}" placeholder="5:30 /km" />
         </label>
-        <label>
+        <label class="form-label">
           <span>${isId ? 'Performa Saat Ini (Opsional)' : 'Current Performance (Optional)'}</span>
-          <input type="text" data-field="currentPerformance" value="${
-            state.goal.currentPerformance ?? ''
-          }" />
+          <input type="text" class="form-control" data-field="currentPerformance" value="${escapeAttr(
+            state.goal.currentPerformance
+          )}" />
         </label>
       `;
     } else if (aspiration === 'improve_health_indicator') {
@@ -408,9 +417,9 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
       ).join('');
 
       targetStageHtml = `
-        <label>
+        <label class="form-label">
           <span>${isId ? 'Indikator Kesehatan' : 'Health Indicator'}</span>
-          <select data-field="targetBiomarker">
+          <select class="form-select" data-field="targetBiomarker">
             <option value="" ${!state.goal.targetBiomarker ? 'selected' : ''}>${
               isId ? '-- Pilih Indikator --' : '-- Select Indicator --'
             }</option>
@@ -420,11 +429,11 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
             }</option>
           </select>
         </label>
-        <label>
+        <label class="form-label">
           <span>${isId ? 'Target Indikator Kesehatan' : 'Target Indicator Value'}</span>
-          <input type="text" data-field="targetBiomarkerValue" value="${
-            state.goal.targetBiomarkerValue ?? ''
-          }" placeholder="< 100 mg/dL" />
+          <input type="text" class="form-control" data-field="targetBiomarkerValue" value="${escapeAttr(
+            state.goal.targetBiomarkerValue
+          )}" placeholder="< 100 mg/dL" />
         </label>
       `;
     }
@@ -432,10 +441,10 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
     const showTimeframe = isGoalTargetReadyForTimeframe(state.goal);
     const timeframeHtml = showTimeframe
       ? `
-        <div class="asha-timeframe-stage">
-          <label>
+        <div class="asha-timeframe-stage mt-3">
+          <label class="form-label">
             <span>${isId ? 'Target Waktu / Durasi Rencana (Minggu)' : 'Target Timeframe (Weeks)'}</span>
-            <input type="number" data-field="durationWeeks" value="${
+            <input type="number" class="form-control" data-field="durationWeeks" value="${
               state.timeframe.durationWeeks ?? ''
             }" placeholder="8" />
           </label>
@@ -444,12 +453,12 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
       : '';
 
     return `
-      <section class="asha-card">
+      <section class="asha-card card shadow-sm">
         <h2>${isId ? '4. Aspirasi, Target & Jangka Waktu' : '4. Aspiration, Target & Timeframe'}</h2>
         <div class="asha-grid">
-          <label>
+          <label class="form-label">
             <span>${isId ? 'Aspirasi Utama' : 'Primary Aspiration'}</span>
-            <select data-field="aspiration">
+            <select class="form-select" data-field="aspiration">
               <option value="" ${state.goal.aspiration === null ? 'selected' : ''}>${
                 isId ? '-- Pilih Aspirasi --' : '-- Select Aspiration --'
               }</option>
@@ -495,27 +504,27 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
       ).join('');
 
       return `
-        <section class="asha-card">
+        <section class="asha-card card shadow-sm">
           <h2>${isId ? '1. Informasi Pribadi' : '1. Personal Information'}</h2>
-          <p class="asha-subtitle">${
+          <p class="asha-subtitle text-muted">${
             isId
               ? 'Mulai dengan informasi dasar Anda. Data hanya disimpan di memori sesi ini.'
               : 'Start with your core personal context. Data stays strictly in runtime memory.'
           }</p>
           <div class="asha-grid">
-            <label>
+            <label class="form-label">
               <span>${isId ? 'What should I call you? (Nama Panggilan)' : 'What should I call you?'}</span>
-              <input type="text" data-field="nickname" value="${
-                state.personal.nickname ?? ''
-              }" placeholder="${isId ? 'Contoh: Budi / Sari' : 'e.g., Alex'}" />
+              <input type="text" class="form-control" data-field="nickname" value="${escapeAttr(
+                state.personal.nickname
+              )}" placeholder="${isId ? 'Contoh: Budi / Sari' : 'e.g., Alex'}" />
             </label>
-            <label>
+            <label class="form-label">
               <span>${isId ? 'Usia (tahun)' : 'Age (years)'}</span>
-              <input type="number" data-field="age" value="${state.personal.age ?? ''}" placeholder="35" />
+              <input type="number" class="form-control" data-field="age" value="${state.personal.age ?? ''}" placeholder="35" />
             </label>
-            <label>
+            <label class="form-label">
               <span>${isId ? 'Jenis Kelamin' : 'Sex'}</span>
-              <select data-field="sex">
+              <select class="form-select" data-field="sex">
                 <option value="" ${state.personal.sex === null ? 'selected' : ''}>${
                   isId ? '-- Pilih --' : '-- Select --'
                 }</option>
@@ -530,17 +539,17 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
                 }>${isId ? 'Prefer tidak menyebutkan' : 'Prefer not to say'}</option>
               </select>
             </label>
-            <label>
+            <label class="form-label">
               <span>${isId ? 'Tinggi Badan (cm)' : 'Height (cm)'}</span>
-              <input type="number" data-field="height" value="${state.personal.height ?? ''}" placeholder="168" />
+              <input type="number" class="form-control" data-field="height" value="${state.personal.height ?? ''}" placeholder="168" />
             </label>
-            <label>
+            <label class="form-label">
               <span>${isId ? 'Berat Badan (kg)' : 'Weight (kg)'}</span>
-              <input type="number" data-field="weight" value="${state.personal.weight ?? ''}" placeholder="65" />
+              <input type="number" class="form-control" data-field="weight" value="${state.personal.weight ?? ''}" placeholder="65" />
             </label>
-            <label>
+            <label class="form-label">
               <span>${isId ? 'Suku / Etnis (Opsional)' : 'Ethnic Group (Optional)'}</span>
-              <select data-field="ethnicity">
+              <select class="form-select" data-field="ethnicity">
                 <option value="" ${!state.personal.ethnicity ? 'selected' : ''}>${
                   isId ? '-- Pilih Etnis (Opsional) --' : '-- Select Ethnic Group (Optional) --'
                 }</option>
@@ -558,29 +567,29 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
         const item = state.healthReport.extracted[key];
         if (!item) return '';
         return `
-          <div class="asha-ocr-row">
+          <div class="asha-ocr-row d-flex align-items-center gap-2 mb-2">
             <strong>${BIOMARKER_LABELS[key]}</strong>
-            <input type="text" data-edit-ocr="${key}" value="${item.normalizedValue ?? ''}" placeholder="Unable to determine" />
-            <span class="asha-badge">${item.confidence}</span>
+            <input type="text" class="form-control" data-edit-ocr="${key}" value="${escapeAttr(item.normalizedValue)}" placeholder="Unable to determine" />
+            <span class="asha-badge badge bg-warning text-dark">${item.confidence}</span>
           </div>
         `;
       }).join('');
 
       return `
-        <section class="asha-card">
+        <section class="asha-card card shadow-sm">
           <h2>${
             isId
               ? '2. Upload Hasil Tes Kesehatan (OCR)'
               : '2. Upload Health Test Results (Client-Side OCR)'
           }</h2>
-          <p class="asha-subtitle">${
+          <p class="asha-subtitle text-muted">${
             isId
               ? 'Ekstraksi dilakukan 100% di browser menggunakan Tesseract.js. Verifikasi sebelum dilanjutkan ke Ringkasan Kesehatan.'
               : 'Extracted 100% in-browser via Tesseract.js. Verify and confirm before proceeding to Health Snapshot.'
           }</p>
-          <input type="file" data-action="ocr-file" accept=".jpg,.jpeg,.png,.webp" />
-          <div class="asha-ocr-results">${extractedRows}</div>
-          <button type="button" class="asha-primary-btn" data-action="confirm-ocr">${
+          <input type="file" class="form-control mb-3" data-action="ocr-file" accept=".jpg,.jpeg,.png,.webp" />
+          <div class="asha-ocr-results mb-3">${extractedRows}</div>
+          <button type="button" class="btn btn-primary asha-primary-btn" data-action="confirm-ocr">${
             isId ? 'Konfirmasi Hasil Ekstraksi' : 'Confirm Extracted Values'
           }</button>
         </section>
@@ -591,28 +600,28 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
     if (step === 2) {
       const inputs = BIOMARKER_KEYS.map(
         (key) => `
-          <label>
+          <label class="form-label">
             <span>${BIOMARKER_LABELS[key]}</span>
-            <input type="text" data-biomarker="${key}" value="${
-              state.health[key].value ?? ''
-            }" placeholder="${isId ? 'Belum diisi' : 'Not provided'}" />
+            <input type="text" class="form-control" data-biomarker="${key}" value="${escapeAttr(
+              state.health[key].value
+            )}" placeholder="${isId ? 'Belum diisi' : 'Not provided'}" />
           </label>
         `
       ).join('');
 
       return `
-        <section class="asha-card">
+        <section class="asha-card card shadow-sm">
           <h2>${isId ? '3. Ringkasan Kesehatan (Health Snapshot)' : '3. Health Snapshot'}</h2>
-          <p class="asha-subtitle">${
+          <p class="asha-subtitle text-muted">${
             isId
               ? 'Nilai yang dikosongkan akan ditandai "Not provided" dan tidak pernah dikarang.'
               : 'Omitted values are marked "Not provided" and never fabricated.'
           }</p>
           <div class="asha-grid">
             ${inputs}
-            <label>
+            <label class="form-label">
               <span>${isId ? 'Indikator Lainnya (Opsional)' : 'Other Indicators (Optional)'}</span>
-              <input type="text" data-field="health-other" value="${state.health.other ?? ''}" />
+              <input type="text" class="form-control" data-field="health-other" value="${escapeAttr(state.health.other)}" />
             </label>
           </div>
         </section>
@@ -630,8 +639,8 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
 
       const trainingDayCheckboxes = DAYS_OF_WEEK.map(
         (day) => `
-          <label class="asha-inline-check">
-            <input type="checkbox" data-training-day="${day}" ${
+          <label class="asha-inline-check form-check-label">
+            <input type="checkbox" class="form-check-input" data-training-day="${day}" ${
               state.schedule.trainingDays.includes(day) ? 'checked' : ''
             } />
             <span>${isId ? DAY_LABELS_ID[day] : day}</span>
@@ -641,8 +650,8 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
 
       const restDayCheckboxes = DAYS_OF_WEEK.map(
         (day) => `
-          <label class="asha-inline-check ${allTrainingDaysSelected ? 'asha-disabled-check' : ''}">
-            <input type="checkbox" data-rest-day="${day}" ${
+          <label class="asha-inline-check form-check-label ${allTrainingDaysSelected ? 'asha-disabled-check' : ''}">
+            <input type="checkbox" class="form-check-input" data-rest-day="${day}" ${
               allTrainingDaysSelected
                 ? 'disabled'
                 : state.schedule.restDays.includes(day)
@@ -664,8 +673,8 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
       const trainingTypeCheckboxes = trainingTypeItems
         .map(
           (item) => `
-            <label class="asha-inline-check">
-              <input type="checkbox" data-training-type="${item}" ${
+            <label class="asha-inline-check form-check-label">
+              <input type="checkbox" class="form-check-input" data-training-type="${item}" ${
                 selectedTrainingTypes.includes(item) ? 'checked' : ''
               } />
               <span>${trainingTypeLabels[item]}</span>
@@ -691,8 +700,8 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
       const equipCheckboxes = equipItems
         .map(
           (item) => `
-            <label class="asha-inline-check">
-              <input type="checkbox" data-equipment="${item}" ${
+            <label class="asha-inline-check form-check-label">
+              <input type="checkbox" class="form-check-input" data-equipment="${item}" ${
                 state.equipment.selected.includes(item) ? 'checked' : ''
               } />
               <span>${equipLabels[item]}</span>
@@ -704,9 +713,9 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
       const ifConditionalFields =
         state.nutrition.diet === 'intermittent_fasting'
           ? `
-            <label>
+            <label class="form-label">
               <span>${isId ? 'Protokol IF' : 'IF Protocol'}</span>
-              <select data-field="fastingProtocol">
+              <select class="form-select" data-field="fastingProtocol">
                 <option value="">--</option>
                 <option value="12:12" ${state.nutrition.fastingProtocol === '12:12' ? 'selected' : ''}>12:12</option>
                 <option value="14:10" ${state.nutrition.fastingProtocol === '14:10' ? 'selected' : ''}>14:10</option>
@@ -715,25 +724,25 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
                 <option value="custom" ${state.nutrition.fastingProtocol === 'custom' ? 'selected' : ''}>Custom</option>
               </select>
             </label>
-            <label>
+            <label class="form-label">
               <span>${isId ? 'Jendela Makan' : 'Eating Window'}</span>
-              <input type="text" data-field="eatingWindow" value="${
-                state.nutrition.eatingWindow ?? ''
-              }" placeholder="12:00 - 20:00" />
+              <input type="text" class="form-control" data-field="eatingWindow" value="${escapeAttr(
+                state.nutrition.eatingWindow
+              )}" placeholder="12:00 - 20:00" />
             </label>
           `
           : '';
 
       return `
-        <section class="asha-card">
+        <section class="asha-card card shadow-sm">
           <h2>${isId ? '5. Jadwal, Peralatan & Diet' : '5. Schedule, Equipment & Diet'}</h2>
 
           <div class="asha-session-block">
             <fieldset class="asha-checkbox-group">
               <legend>${isId ? 'Pilihan Hari Latihan' : 'Training Days'}</legend>
               <div class="asha-select-all-row">
-                <label class="asha-inline-check asha-select-all-check">
-                  <input type="checkbox" data-action="select-all-training-days" ${
+                <label class="asha-inline-check asha-select-all-check form-check-label">
+                  <input type="checkbox" class="form-check-input" data-action="select-all-training-days" ${
                     allTrainingDaysSelected ? 'checked' : ''
                   } />
                   <span>${isId ? 'Pilih Semua (Select All)' : 'Select All'}</span>
@@ -765,15 +774,15 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
           <div class="asha-session-block">
             <h3>${isId ? 'Waktu Latihan & Durasi' : 'Training Time & Duration'}</h3>
             <div class="asha-grid">
-              <label>
+              <label class="form-label">
                 <span>${isId ? 'Waktu Pilihan Latihan' : 'Preferred Training Time'}</span>
-                <input type="time" data-field="preferredTime" value="${
-                  state.schedule.preferredTime ?? ''
-                }" />
+                <input type="time" class="form-control" data-field="preferredTime" value="${escapeAttr(
+                  state.schedule.preferredTime
+                )}" />
               </label>
-              <label>
+              <label class="form-label">
                 <span>${isId ? 'Durasi Sesi (menit)' : 'Session Duration (minutes)'}</span>
-                <input type="number" data-field="sessionDurationMinutes" value="${
+                <input type="number" class="form-control" data-field="sessionDurationMinutes" value="${
                   state.schedule.sessionDurationMinutes ?? ''
                 }" placeholder="45" />
               </label>
@@ -785,9 +794,9 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
           <div class="asha-session-block">
             <h3>${isId ? 'Pola Diet' : 'Diet Preference'}</h3>
             <div class="asha-grid">
-              <label>
+              <label class="form-label">
                 <span>${isId ? 'Pola Diet' : 'Diet Preference'}</span>
-                <select data-field="diet">
+                <select class="form-select" data-field="diet">
                   <option value="">${isId ? 'Tidak ditentukan' : 'Not specified'}</option>
                   <option value="no_specific_diet" ${
                     state.nutrition.diet === 'no_specific_diet' ? 'selected' : ''
@@ -819,30 +828,30 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
           ? state.personalization.conditionalQuestions
               .map(
                 (q) => `
-                  <label class="asha-conditional-q">
+                  <label class="asha-conditional-q form-label">
                     <span>${isId ? q.questionId : q.questionEn}</span>
-                    <input type="text" data-conditional="${q.id}" value="${q.answer ?? ''}" />
+                    <input type="text" class="form-control" data-conditional="${q.id}" value="${escapeAttr(q.answer)}" />
                   </label>
                 `
               )
               .join('')
-          : `<p>${
+          : `<p class="text-muted mb-0">${
               isId
                 ? 'Tidak ada pertanyaan fisiologis tambahan yang diperlukan.'
                 : 'No additional conditional physiological questions required.'
             }</p>`;
 
       return `
-        <section class="asha-card">
+        <section class="asha-card card shadow-sm">
           <h2>${
             isId
               ? '6. Tipe Rencana, Kalender, Referensi Visual & Konteks Fisiologis'
               : '6. Plan Type, Calendar, Visual Preferences & Conditional Context'
           }</h2>
           <div class="asha-grid">
-            <label>
+            <label class="form-label">
               <span>${isId ? 'Tipe Rencana' : 'Plan Type'}</span>
-              <select data-field="planType">
+              <select class="form-select" data-field="planType">
                 <option value="training_and_meal" ${
                   state.planning.planType === 'training_and_meal' ? 'selected' : ''
                 }>Training + Meal Plan</option>
@@ -854,9 +863,9 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
                 }>Meal Plan Only</option>
               </select>
             </label>
-            <label>
+            <label class="form-label">
               <span>${isId ? 'Mode Integrasi' : 'Integration Mode'}</span>
-              <select data-field="integrationMode">
+              <select class="form-select" data-field="integrationMode">
                 <option value="optimize_together" ${
                   state.planning.integrationMode === 'optimize_together' ? 'selected' : ''
                 }>Optimize Together</option>
@@ -865,13 +874,13 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
                 }>Independent</option>
               </select>
             </label>
-            <label>
+            <label class="form-label">
               <span>${isId ? 'Tanggal Dimulainya Plan' : 'Plan Start Date'}</span>
-              <input type="date" data-field="startDate" value="${state.planning.startDate ?? ''}" />
+              <input type="date" class="form-control" data-field="startDate" value="${escapeAttr(state.planning.startDate)}" />
             </label>
-            <label>
+            <label class="form-label">
               <span>${isId ? 'Pilihan Kalender' : 'Calendar Platform'}</span>
-              <select data-field="calendarProvider">
+              <select class="form-select" data-field="calendarProvider">
                 <option value="google" ${
                   (state.planning.calendarProvider ?? 'google') === 'google' ? 'selected' : ''
                 }>Google</option>
@@ -883,9 +892,9 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
                 }>Apple</option>
               </select>
             </label>
-            <label>
+            <label class="form-label">
               <span>${isId ? 'Mode Referensi Visual Latihan' : 'Exercise Visual Mode'}</span>
-              <select data-field="exerciseVisualMode">
+              <select class="form-select" data-field="exerciseVisualMode">
                 <option value="external_reference" ${
                   state.planning.exerciseVisualMode === 'external_reference' ? 'selected' : ''
                 }>External Reference (DAREBEE link)</option>
@@ -900,12 +909,12 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
                 }>Text-Only Fallback</option>
               </select>
             </label>
-            <label>
+            <label class="form-label">
               <span>${isId ? 'Pengingat Kalender (menit sebelum)' : 'Calendar Reminder (minutes before)'}</span>
-              <input type="number" data-field="reminderMinutesBefore" value="${state.planning.reminderMinutesBefore}" />
+              <input type="number" class="form-control" data-field="reminderMinutesBefore" value="${state.planning.reminderMinutesBefore}" />
             </label>
           </div>
-          <div class="asha-conditionals">
+          <div class="asha-conditionals mt-4">
             <h3>${isId ? 'Konteks Fisiologis (Opsional)' : 'Conditional Physiological Context (Optional)'}</h3>
             ${conditionalHtml}
           </div>
@@ -913,12 +922,26 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
       `;
     }
 
-    // Step 7 (index 6): Review & Confirmation Screen
+    // Step 7 (index 6): Review & Confirmation Screen with Pre-Filled Form Style
     applyAssumptionsAndPersonalization(state);
-    const personaInfo = resolveVisualPersona(state.personal.sex);
-    const healthSummary = BIOMARKER_KEYS.map(
-      (k) => `${BIOMARKER_LABELS[k]}: ${state.health[k].value ?? 'Not provided'}`
-    ).join(' | ');
+
+    const notProvidedText = isId ? 'Belum diisi (Not provided)' : 'Not provided';
+    const biomarkerFormFields = BIOMARKER_KEYS.map(
+      (k) => `
+        <div class="col-md-4 col-sm-6">
+          <label class="form-label">
+            <span>${BIOMARKER_LABELS[k]}</span>
+            <input
+              type="text"
+              class="form-control asha-prefilled-input"
+              readonly
+              data-review-field="health-${k}"
+              value="${escapeAttr(state.health[k].value ?? notProvidedText)}"
+            />
+          </label>
+        </div>
+      `
+    ).join('');
 
     const displayName =
       state.personal.nickname && state.personal.nickname.trim().length > 0
@@ -927,6 +950,13 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
         ? 'Sahabat ASHA'
         : 'Friend';
     const quoteText = state.ui.motivationalQuote ?? pickRandomMotivationalQuote();
+
+    const dietValueDisplay =
+      state.nutrition.diet === 'intermittent_fasting'
+        ? `Intermittent Fasting (${state.nutrition.fastingProtocol ?? '16:8'}, Window: ${
+            state.nutrition.eatingWindow ?? '-'
+          })`
+        : state.nutrition.diet ?? notProvidedText;
 
     const promptReadySection = state.confirmation.confirmed
       ? `
@@ -950,7 +980,7 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
                 href="https://chatgpt.com/"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="asha-ai-logo-btn"
+                class="asha-ai-logo-btn btn"
                 data-ai-provider="chatgpt"
                 title="ChatGPT"
               >
@@ -966,7 +996,7 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
                 href="https://gemini.google.com/"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="asha-ai-logo-btn"
+                class="asha-ai-logo-btn btn"
                 data-ai-provider="gemini"
                 title="Google Gemini"
               >
@@ -982,7 +1012,7 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
                 href="https://claude.ai/"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="asha-ai-logo-btn"
+                class="asha-ai-logo-btn btn"
                 data-ai-provider="claude"
                 title="Anthropic Claude"
               >
@@ -998,7 +1028,7 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
                 href="https://grok.com/"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="asha-ai-logo-btn"
+                class="asha-ai-logo-btn btn"
                 data-ai-provider="grok"
                 title="xAI Grok"
               >
@@ -1014,7 +1044,7 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
                 href="https://copilot.microsoft.com/"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="asha-ai-logo-btn"
+                class="asha-ai-logo-btn btn"
                 data-ai-provider="copilot"
                 title="Microsoft Copilot"
               >
@@ -1031,55 +1061,253 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
       : '';
 
     return `
-      <section class="asha-card asha-review-card">
+      <section class="asha-card asha-review-card card shadow-sm">
         <h2>${isId ? '7. Tinjauan & Konfirmasi (Mandatory Review)' : '7. Mandatory Review & Confirmation'}</h2>
-        <div class="asha-review-summary">
-          <p><strong>Visual Persona:</strong> ${isId ? personaInfo.labelId : personaInfo.labelEn}</p>
-          <p><strong>${isId ? 'Konteks Perencanaan' : 'Planning Context'}:</strong> ${
-            isId
-              ? 'Jenis kelamin digunakan sebagai variabel kontekstual. Tidak ada stereotip latihan berbasis jenis kelamin.'
-              : 'Sex will be used as contextual information. No sex-based training stereotype will be applied.'
-          }</p>
-          <p><strong>${isId ? 'Informasi Pribadi' : 'Personal Info'}:</strong> ${
-            state.personal.nickname ?? 'Not provided'
-          } | ${
-            state.personal.age ?? 'Not provided'
-          } yrs | ${state.personal.sex ?? 'Not provided'} | ${
-            state.personal.height !== null ? `${state.personal.height} cm` : 'Not provided'
-          } | ${state.personal.weight !== null ? `${state.personal.weight} kg` : 'Not provided'} | ${
-            state.personal.ethnicity ?? 'Not provided'
-          }</p>
-          <p><strong>Health Snapshot:</strong> ${healthSummary}</p>
-          <p><strong>Aspiration / Target / Timeframe:</strong> ${
-            state.goal.aspiration ?? 'Not provided'
-          } — ${state.goal.target ?? 'Not provided'} (${
-            state.timeframe.durationWeeks ?? 8
-          } weeks)</p>
-          <p><strong>Schedule & Training Types:</strong> ${state.schedule.trainingDays.join(', ')} (${
-            state.schedule.sessionDurationMinutes ?? 45
-          } min at ${state.schedule.preferredTime ?? '07:00'}) | Types: ${(
-            state.schedule.trainingTypes ?? []
-          ).join(', ')} | Rest: ${state.schedule.restDays.join(', ')}</p>
-          <p><strong>Equipment:</strong> ${state.equipment.selected.join(', ')} (${
-            state.equipment.fieldState
-          })</p>
-          <p><strong>Diet, Plan & Calendar:</strong> ${state.nutrition.diet ?? 'Not provided'} | ${
-            state.planning.planType ?? 'training_and_meal'
-          } (${state.planning.integrationMode ?? 'optimize_together'}) | Start: ${
-            state.planning.startDate ?? 'Not provided'
-          } | Calendar: ${(state.planning.calendarProvider ?? 'google').toUpperCase()}</p>
-          <p><strong>AI Assumptions:</strong> ${
-            state.assumptions.length > 0 ? state.assumptions.join(' | ') : 'None'
-          }</p>
-          <p><strong>${isId ? 'Pertimbangan Keamanan' : 'Safety Considerations'}:</strong> ${
-            isId
-              ? 'ASHA bersifat edukatif dan bukan diagnosis atau resep medis.'
-              : 'ASHA provides educational health planning and is not a medical diagnosis or prescription.'
-          }</p>
-        </div>
+        <p class="asha-subtitle text-muted">${
+          isId
+            ? 'Periksa kembali seluruh informasi yang telah Anda isikan dalam tampilan form di bawah ini sebelum membuat prompt.'
+            : 'Review all your pre-filled form details below before confirming.'
+        }</p>
 
-        <label class="asha-confirm-checkbox">
-          <input type="checkbox" data-action="toggle-confirm" ${
+        <form class="asha-review-summary asha-review-prefilled-form" data-role="review-prefilled-form" onsubmit="return false;">
+          <div class="asha-review-form-section">
+            <h3>${isId ? '1. Informasi Pribadi' : '1. Personal Information'}</h3>
+            <div class="row g-3">
+              <div class="col-md-4 col-sm-6">
+                <label class="form-label">
+                  <span>${isId ? 'Nama Panggilan' : 'Nickname'}</span>
+                  <input type="text" class="form-control asha-prefilled-input" readonly data-review-field="nickname" value="${escapeAttr(
+                    state.personal.nickname ?? notProvidedText
+                  )}" />
+                </label>
+              </div>
+              <div class="col-md-4 col-sm-6">
+                <label class="form-label">
+                  <span>${isId ? 'Usia (tahun)' : 'Age (years)'}</span>
+                  <input type="text" class="form-control asha-prefilled-input" readonly data-review-field="age" value="${escapeAttr(
+                    state.personal.age !== null ? `${state.personal.age}` : notProvidedText
+                  )}" />
+                </label>
+              </div>
+              <div class="col-md-4 col-sm-6">
+                <label class="form-label">
+                  <span>${isId ? 'Jenis Kelamin' : 'Sex'}</span>
+                  <input type="text" class="form-control asha-prefilled-input" readonly data-review-field="sex" value="${escapeAttr(
+                    state.personal.sex ?? notProvidedText
+                  )}" />
+                </label>
+              </div>
+              <div class="col-md-4 col-sm-6">
+                <label class="form-label">
+                  <span>${isId ? 'Tinggi Badan (cm)' : 'Height (cm)'}</span>
+                  <input type="text" class="form-control asha-prefilled-input" readonly data-review-field="height" value="${escapeAttr(
+                    state.personal.height !== null ? `${state.personal.height} cm` : notProvidedText
+                  )}" />
+                </label>
+              </div>
+              <div class="col-md-4 col-sm-6">
+                <label class="form-label">
+                  <span>${isId ? 'Berat Badan (kg)' : 'Weight (kg)'}</span>
+                  <input type="text" class="form-control asha-prefilled-input" readonly data-review-field="weight" value="${escapeAttr(
+                    state.personal.weight !== null ? `${state.personal.weight} kg` : notProvidedText
+                  )}" />
+                </label>
+              </div>
+              <div class="col-md-4 col-sm-6">
+                <label class="form-label">
+                  <span>${isId ? 'Suku / Etnis' : 'Ethnicity'}</span>
+                  <input type="text" class="form-control asha-prefilled-input" readonly data-review-field="ethnicity" value="${escapeAttr(
+                    state.personal.ethnicity ?? notProvidedText
+                  )}" />
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="asha-review-form-section">
+            <h3>${isId ? '2 & 3. Ringkasan Kesehatan & Biomarker' : '2 & 3. Health Snapshot & Biomarkers'}</h3>
+            <div class="row g-3">
+              ${biomarkerFormFields}
+              <div class="col-md-4 col-sm-6">
+                <label class="form-label">
+                  <span>${isId ? 'Indikator Lainnya' : 'Other Indicators'}</span>
+                  <input type="text" class="form-control asha-prefilled-input" readonly data-review-field="health-other" value="${escapeAttr(
+                    state.health.other ?? notProvidedText
+                  )}" />
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="asha-review-form-section">
+            <h3>${isId ? '4. Aspirasi, Target & Jangka Waktu' : '4. Aspiration, Target & Timeframe'}</h3>
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label class="form-label">
+                  <span>${isId ? 'Aspirasi Utama' : 'Primary Aspiration'}</span>
+                  <input type="text" class="form-control asha-prefilled-input" readonly data-review-field="aspiration" value="${escapeAttr(
+                    state.goal.aspiration ?? notProvidedText
+                  )}" />
+                </label>
+              </div>
+              <div class="col-md-5">
+                <label class="form-label">
+                  <span>${isId ? 'Target Spesifik' : 'Specific Target'}</span>
+                  <input type="text" class="form-control asha-prefilled-input" readonly data-review-field="target" value="${escapeAttr(
+                    state.goal.target ?? notProvidedText
+                  )}" />
+                </label>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">
+                  <span>${isId ? 'Jangka Waktu (Minggu)' : 'Timeframe (Weeks)'}</span>
+                  <input type="text" class="form-control asha-prefilled-input" readonly data-review-field="durationWeeks" value="${escapeAttr(
+                    `${state.timeframe.durationWeeks ?? 8} minggu`
+                  )}" />
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="asha-review-form-section">
+            <h3>${isId ? '5. Jadwal, Jenis Latihan, Peralatan & Pola Diet' : '5. Schedule, Training Types, Equipment & Diet'}</h3>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">
+                  <span>${isId ? 'Hari Latihan' : 'Training Days'}</span>
+                  <input type="text" class="form-control asha-prefilled-input" readonly data-review-field="trainingDays" value="${escapeAttr(
+                    state.schedule.trainingDays.length > 0
+                      ? state.schedule.trainingDays.join(', ')
+                      : notProvidedText
+                  )}" />
+                </label>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">
+                  <span>${isId ? 'Hari Istirahat' : 'Rest Days'}</span>
+                  <input type="text" class="form-control asha-prefilled-input" readonly data-review-field="restDays" value="${escapeAttr(
+                    state.schedule.restDays.length > 0
+                      ? state.schedule.restDays.join(', ')
+                      : notProvidedText
+                  )}" />
+                </label>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">
+                  <span>${isId ? 'Jenis Latihan' : 'Training Types'}</span>
+                  <input type="text" class="form-control asha-prefilled-input" readonly data-review-field="trainingTypes" value="${escapeAttr(
+                    (state.schedule.trainingTypes ?? []).length > 0
+                      ? (state.schedule.trainingTypes ?? []).join(', ')
+                      : notProvidedText
+                  )}" />
+                </label>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">
+                  <span>${isId ? 'Peralatan yang Tersedia' : 'Available Equipment'}</span>
+                  <input type="text" class="form-control asha-prefilled-input" readonly data-review-field="equipment" value="${escapeAttr(
+                    state.equipment.selected.length > 0
+                      ? `${state.equipment.selected.join(', ')} (${state.equipment.fieldState})`
+                      : notProvidedText
+                  )}" />
+                </label>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">
+                  <span>${isId ? 'Waktu Pilihan Latihan' : 'Preferred Training Time'}</span>
+                  <input type="text" class="form-control asha-prefilled-input" readonly data-review-field="preferredTime" value="${escapeAttr(
+                    state.schedule.preferredTime ?? '07:00'
+                  )}" />
+                </label>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">
+                  <span>${isId ? 'Durasi Sesi (menit)' : 'Session Duration (minutes)'}</span>
+                  <input type="text" class="form-control asha-prefilled-input" readonly data-review-field="sessionDurationMinutes" value="${escapeAttr(
+                    `${state.schedule.sessionDurationMinutes ?? 45} menit`
+                  )}" />
+                </label>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">
+                  <span>${isId ? 'Pola Diet' : 'Diet Preference'}</span>
+                  <input type="text" class="form-control asha-prefilled-input" readonly data-review-field="diet" value="${escapeAttr(
+                    dietValueDisplay
+                  )}" />
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="asha-review-form-section">
+            <h3>${isId ? '6. Tipe Rencana, Tanggal Mulai & Kalender' : '6. Plan Type, Start Date & Calendar'}</h3>
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label class="form-label">
+                  <span>${isId ? 'Tipe Rencana & Integrasi' : 'Plan Type & Integration'}</span>
+                  <input type="text" class="form-control asha-prefilled-input" readonly data-review-field="planType" value="${escapeAttr(
+                    `${state.planning.planType ?? 'training_and_meal'} (${
+                      state.planning.integrationMode ?? 'optimize_together'
+                    })`
+                  )}" />
+                </label>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">
+                  <span>${isId ? 'Tanggal Dimulainya Plan' : 'Plan Start Date'}</span>
+                  <input type="text" class="form-control asha-prefilled-input" readonly data-review-field="startDate" value="${escapeAttr(
+                    state.planning.startDate ?? notProvidedText
+                  )}" />
+                </label>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">
+                  <span>${isId ? 'Pilihan Kalender' : 'Calendar Platform'}</span>
+                  <input type="text" class="form-control asha-prefilled-input" readonly data-review-field="calendarProvider" value="${escapeAttr(
+                    (state.planning.calendarProvider ?? 'google').toUpperCase()
+                  )}" />
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="asha-review-form-section">
+            <h3>${isId ? 'Konteks Personalisasi, Asumsi Sistem & Keamanan' : 'Personalization Context, AI Assumptions & Safety'}</h3>
+            <div class="row g-3">
+              <div class="col-12">
+                <label class="form-label">
+                  <span>${isId ? 'Konteks Perencanaan' : 'Planning Context'}</span>
+                  <input type="text" class="form-control asha-prefilled-input" readonly data-review-field="planningContext" value="${escapeAttr(
+                    isId
+                      ? 'Jenis kelamin digunakan sebagai variabel kontekstual. Tidak ada stereotip latihan berbasis jenis kelamin.'
+                      : 'Sex will be used as contextual information. No sex-based training stereotype will be applied.'
+                  )}" />
+                </label>
+              </div>
+              <div class="col-12">
+                <label class="form-label">
+                  <span>AI Assumptions</span>
+                  <textarea class="form-control asha-prefilled-input" rows="2" readonly data-review-field="assumptions">${
+                    state.assumptions.length > 0 ? state.assumptions.join(' | ') : 'None'
+                  }</textarea>
+                </label>
+              </div>
+              <div class="col-12">
+                <label class="form-label">
+                  <span>${isId ? 'Pertimbangan Keamanan' : 'Safety Considerations'}</span>
+                  <input type="text" class="form-control asha-prefilled-input" readonly data-review-field="safety" value="${escapeAttr(
+                    isId
+                      ? 'ASHA bersifat edukatif dan bukan diagnosis atau resep medis.'
+                      : 'ASHA provides educational health planning and is not a medical diagnosis or prescription.'
+                  )}" />
+                </label>
+              </div>
+            </div>
+          </div>
+        </form>
+
+        <label class="asha-confirm-checkbox form-check-label">
+          <input type="checkbox" class="form-check-input" data-action="toggle-confirm" ${
             state.confirmation.confirmed ? 'checked' : ''
           } />
           <span>${
@@ -1116,13 +1344,13 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
 
     const replacementGateHtml = state.chat.pendingReplacementContent
       ? `
-        <div class="asha-replacement-banner">
+        <div class="asha-replacement-banner alert alert-warning">
           <p>${
             isId
               ? 'Perubahan signifikan terdeteksi. Konfirmasi sebelum mengganti seluruh rencana?'
               : 'Significant plan change detected. Confirm before replacing the whole plan?'
           }</p>
-          <button type="button" data-action="confirm-replacement">${
+          <button type="button" class="btn btn-primary asha-primary-btn" data-action="confirm-replacement">${
             isId ? 'Konfirmasi Rencana Baru' : 'Confirm Plan Replacement'
           }</button>
         </div>
@@ -1130,7 +1358,7 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
       : '';
 
     return `
-      <section class="asha-card asha-chat-panel">
+      <section class="asha-card asha-chat-panel card shadow-sm">
         <div class="asha-chat-header">
           <h2>Personal Trainer Chat — Plan ${state.chat.currentVersion}</h2>
           <span class="asha-ephemeral-note">${
@@ -1141,19 +1369,19 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
         </div>
         ${
           state.chat.loading
-            ? `<div class="asha-loading" role="status">${state.chat.loadingMessage}</div>`
+            ? `<div class="asha-loading alert alert-info" role="status">${state.chat.loadingMessage}</div>`
             : ''
         }
-        ${state.chat.error ? `<div class="asha-error">${state.chat.error}</div>` : ''}
+        ${state.chat.error ? `<div class="asha-error alert alert-danger">${state.chat.error}</div>` : ''}
         <div class="asha-chat-history">${turnsHtml}</div>
         ${replacementGateHtml}
-        <div class="asha-chat-composer">
-          <input type="text" data-field="chat-input" placeholder="${
+        <div class="asha-chat-composer d-flex gap-2 mt-3">
+          <input type="text" class="form-control" data-field="chat-input" placeholder="${
             isId
               ? 'Tanyakan atau sesuaikan rencana Anda dalam Bahasa Indonesia...'
               : 'Ask or adapt your plan (Gemini responds in Bahasa Indonesia)...'
           }" />
-          <button type="button" data-action="send-chat">${isId ? 'Kirim' : 'Send'}</button>
+          <button type="button" class="btn btn-primary asha-primary-btn" data-action="send-chat">${isId ? 'Kirim' : 'Send'}</button>
         </div>
       </section>
     `;
@@ -1163,23 +1391,23 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
     const isFinalStep = state.ui.currentStep === TOTAL_WIZARD_STEPS - 1;
     const buttonsHtml = isFinalStep
       ? `
-          <button type="button" data-action="prev-step">${isId ? 'Sebelumnya' : 'Back'}</button>
-          <button type="button" class="asha-primary-btn" data-action="start-over">${
+          <button type="button" class="btn btn-outline-primary" data-action="prev-step">${isId ? 'Sebelumnya' : 'Back'}</button>
+          <button type="button" class="btn btn-primary asha-primary-btn" data-action="start-over">${
             isId ? 'Mulai Lagi' : 'Start Over'
           }</button>
         `
       : `
-          <button type="button" data-action="prev-step" ${
+          <button type="button" class="btn btn-outline-primary" data-action="prev-step" ${
             state.ui.currentStep === 0 ? 'disabled' : ''
           }>${isId ? 'Sebelumnya' : 'Back'}</button>
-          <button type="button" class="asha-primary-btn" data-action="next-step">${
+          <button type="button" class="btn btn-primary asha-primary-btn" data-action="next-step">${
             isId ? 'Selanjutnya' : 'Next'
           }</button>
         `;
 
     return `
       <nav class="asha-wizard-nav asha-wizard-nav-${position}" aria-label="Wizard Progress ${position}">
-        <span>${isId ? 'Langkah' : 'Step'} ${state.ui.currentStep + 1} / ${TOTAL_WIZARD_STEPS}</span>
+        <span class="badge bg-warning text-dark fs-6">${isId ? 'Langkah' : 'Step'} ${state.ui.currentStep + 1} / ${TOTAL_WIZARD_STEPS}</span>
         <div class="asha-step-buttons">
           ${buttonsHtml}
         </div>
@@ -1191,27 +1419,32 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
     if (!root) return;
     const isId = state.ui.language === 'id';
     root.innerHTML = `
-      <div class="asha-shell" data-persona="${state.personalization.visualPersona}">
-        <header class="asha-header">
+      <div class="asha-shell container py-4" data-persona="${state.personalization.visualPersona}">
+        <header class="asha-header shadow-sm">
           <div class="asha-brand">
             <div class="asha-brand-title-row">
-              <span class="asha-logo-badge">ASHA</span>
-              <h1>ASHA — Personal Health Companion</h1>
+              <img src="pics/logo.png" alt="ASHA Logo" class="asha-logo-img" data-role="asha-logo" />
+              <div>
+                <div class="d-flex align-items-center gap-2">
+                  <span class="asha-logo-badge">ASHA</span>
+                  <h1>ASHA — Personal Health Companion</h1>
+                </div>
+                <p class="asha-cta">${
+                  isId
+                    ? 'Mulai — Hope is the beginning of the plan'
+                    : 'Start — Hope is the beginning of the plan'
+                }</p>
+              </div>
             </div>
-            <p class="asha-cta">${
-              isId
-                ? 'Mulai — Hope is the beginning of the plan'
-                : 'Start — Hope is the beginning of the plan'
-            }</p>
           </div>
           <div class="asha-controls">
-            <button type="button" data-action="lang-id">${
+            <button type="button" class="btn btn-outline-primary btn-sm" data-action="lang-id">${
               isId ? 'Bahasa Indonesia (Aktif)' : 'Bahasa Indonesia'
             }</button>
-            <button type="button" data-action="lang-en">${
+            <button type="button" class="btn btn-outline-primary btn-sm" data-action="lang-en">${
               !isId ? 'English (Active)' : 'English'
             }</button>
-            <button type="button" data-action="clear-session">${
+            <button type="button" class="btn btn-outline-primary btn-sm" data-action="clear-session">${
               isId ? 'Hapus Sesi' : 'Clear Session'
             }</button>
           </div>
@@ -1225,10 +1458,13 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
           ${renderChatPanel(isId)}
         </main>
 
-        <footer class="asha-footer">
+        <footer class="asha-footer shadow-sm">
           <div class="asha-footer-content">
             <div class="asha-footer-brand">
-              <strong>ASHA — Adaptive Smart Health Assistant (v1.7)</strong>
+              <div class="d-flex align-items-center gap-2">
+                <img src="pics/logo.png" alt="ASHA Logo" width="28" height="28" class="rounded" />
+                <strong>ASHA — Adaptive Smart Health Assistant (v1.7)</strong>
+              </div>
               <span>${
                 isId
                   ? 'Perencanaan Kebugaran & Nutrisi Personal Berbasis Bukti'

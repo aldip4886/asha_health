@@ -30,29 +30,27 @@ describe('Seam 1: Client Application Boundary — Ticket 1 (Walking Skeleton)', 
     expect(prompt).toContain('Aspiration: Build muscle');
   });
 
-  it('independently updates Visual Persona upon sex selection with fade transition without altering health recommendation rules', () => {
+  it('updates Visual Persona state upon sex selection while keeping background image removed across all pages', () => {
     const app = createAshaApp({ root: document.getElementById('app')! });
 
     expect(app.getState().personalization.visualPersona).toBe('neutral');
+    expect(document.documentElement.style.getPropertyValue('--asha-persona-background')).toBe('none');
+    expect(document.body.style.backgroundImage).toBe('none');
 
     app.updatePersonal({ sex: 'male' });
     expect(app.getState().personalization.visualPersona).toBe('female_active');
-    expect(document.documentElement.style.getPropertyValue('--asha-persona-background')).toContain(
-      'Hijabi Athlete in Mauve Activewear.png'
-    );
-    expect(document.body.classList.contains('persona-transition')).toBe(true);
+    expect(document.documentElement.style.getPropertyValue('--asha-persona-background')).toBe('none');
+    expect(document.body.style.backgroundImage).toBe('none');
 
     app.updatePersonal({ sex: 'female' });
     expect(app.getState().personalization.visualPersona).toBe('male_active');
-    expect(document.documentElement.style.getPropertyValue('--asha-persona-background')).toContain(
-      'Modern Activewear Duo in White Studio.png'
-    );
+    expect(document.documentElement.style.getPropertyValue('--asha-persona-background')).toBe('none');
+    expect(document.body.style.backgroundImage).toBe('none');
 
     app.updatePersonal({ sex: 'unspecified' });
     expect(app.getState().personalization.visualPersona).toBe('neutral');
-    expect(document.documentElement.style.getPropertyValue('--asha-persona-background')).toContain(
-      'Minimalist Fitness Portrait with Negative Space.png'
-    );
+    expect(document.documentElement.style.getPropertyValue('--asha-persona-background')).toBe('none');
+    expect(document.body.style.backgroundImage).toBe('none');
   });
 
   it('enforces mandatory Review confirmation gate and resets confirmation when any upstream input changes', () => {
@@ -890,9 +888,43 @@ describe('Seam 1: Client Application Boundary — Ticket 5 (Dual .ics Calendars 
     boneInput.value = 'Include tibial & hip bone-loading strength work';
     boneInput.dispatchEvent(new Event('change'));
 
-    // --- STEP 7/7: Review, Confirm, Popup & Master Prompt Verification ---
+    // --- STEP 7/7: Review (Pre-filled Form Style), Confirm, Popup & Master Prompt Verification ---
     app.nextStep();
     expect(app.getState().ui.currentStep).toBe(6);
+
+    // Verify logo from pics/logo.png and Bootstrap layout classes
+    const logoImg = root.querySelector('img[data-role="asha-logo"]') as HTMLImageElement;
+    expect(logoImg).not.toBeNull();
+    expect(logoImg.getAttribute('src')).toBe('pics/logo.png');
+    expect(root.querySelector('.asha-shell.container')).not.toBeNull();
+
+    // Verify Step 7/7 uses pre-filled form style with readonly Bootstrap form-control inputs
+    const reviewForm = root.querySelector('form[data-role="review-prefilled-form"]');
+    expect(reviewForm).not.toBeNull();
+
+    const getReviewVal = (field: string) =>
+      (
+        root.querySelector(
+          `[data-review-field="${field}"].form-control.asha-prefilled-input[readonly]`
+        ) as HTMLInputElement | HTMLTextAreaElement | null
+      )?.value;
+
+    expect(getReviewVal('nickname')).toBe('Rina');
+    expect(getReviewVal('age')).toBe('31');
+    expect(getReviewVal('sex')).toBe('female');
+    expect(getReviewVal('height')).toBe('164 cm');
+    expect(getReviewVal('weight')).toBe('63 kg');
+    expect(getReviewVal('ethnicity')).toBe('Asian');
+    expect(getReviewVal('health-bloodPressure')).toBe('118/76 mmHg');
+    expect(getReviewVal('health-ldl')).toBe('110 mg/dL');
+    expect(getReviewVal('health-other')).toBe('Vitamin D: 32 ng/mL');
+    expect(getReviewVal('aspiration')).toBe('running_performance');
+    expect(getReviewVal('durationWeeks')).toBe('12 minggu');
+    expect(getReviewVal('trainingDays')).toBe('Monday, Wednesday, Friday, Saturday');
+    expect(getReviewVal('trainingTypes')).toBe('cardio, strength, mobility_flexibility');
+    expect(getReviewVal('preferredTime')).toBe('06:15');
+    expect(getReviewVal('startDate')).toBe('2026-10-12');
+    expect(getReviewVal('calendarProvider')).toBe('OUTLOOK');
 
     const confirmCheck = root.querySelector(
       'input[type="checkbox"][data-action="toggle-confirm"]'
