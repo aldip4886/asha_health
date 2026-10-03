@@ -92,12 +92,36 @@ export interface HealthReportState {
   confirmed: boolean;
 }
 
+export const ETHNICITY_OPTIONS = [
+  'Jawa',
+  'Sunda',
+  'Melayu',
+  'Batak',
+  'Minangkabau',
+  'Bugis / Makassar',
+  'Bali',
+  'Madura',
+  'Betawi',
+  'Tionghoa-Indonesia',
+  'Timur Indonesia (Papua / Maluku / NTT)',
+  'Asia Tenggara Lainnya',
+  'Asia Timur / Selatan',
+  'Kaukasia / Eropa',
+  'Timur Tengah / Afrika',
+  'Lainnya / Campuran'
+] as const;
+
 export interface GoalState {
   aspiration: AspirationType | null;
   target: string | null;
+  muscleMassPercent?: number | null;
+  fatPercent?: number | null;
+  targetWeightKg?: number | null;
   runningDistance?: RunningDistance | null;
+  targetPace?: string | null;
   currentPerformance?: string | null;
   targetBiomarker?: BiomarkerKey | 'other' | null;
+  targetBiomarkerValue?: string | null;
 }
 
 export interface TimeframeState {

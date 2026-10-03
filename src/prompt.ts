@@ -111,11 +111,24 @@ export function generateEnglishMasterPrompt(state: AshaAppState): string {
     '## 4. GOAL, TARGET & TIMEFRAME',
     `- Aspiration: ${aspirationLabel}`,
     `- Target: ${state.goal.target ?? 'Not provided'}`,
+    ...(state.goal.muscleMassPercent !== null && state.goal.muscleMassPercent !== undefined
+      ? [`- Target Muscle Mass: ${state.goal.muscleMassPercent}% of body weight`]
+      : []),
+    ...(state.goal.fatPercent !== null && state.goal.fatPercent !== undefined
+      ? [`- Target Body Fat Percentage: ${state.goal.fatPercent}% of body weight`]
+      : []),
+    ...(state.goal.targetWeightKg !== null && state.goal.targetWeightKg !== undefined
+      ? [`- Target Weight: ${state.goal.targetWeightKg} Kg`]
+      : []),
     ...(state.goal.runningDistance ? [`- Running Distance: ${state.goal.runningDistance}`] : []),
+    ...(state.goal.targetPace ? [`- Target Pace: ${state.goal.targetPace}`] : []),
     ...(state.goal.currentPerformance
       ? [`- Current Performance / History: ${state.goal.currentPerformance}`]
       : []),
     ...(state.goal.targetBiomarker ? [`- Target Biomarker: ${state.goal.targetBiomarker}`] : []),
+    ...(state.goal.targetBiomarkerValue
+      ? [`- Target Biomarker Value: ${state.goal.targetBiomarkerValue}`]
+      : []),
     `- Timeframe: ${
       state.timeframe.durationWeeks !== null
         ? `${state.timeframe.durationWeeks} weeks (${state.timeframe.fieldState})`

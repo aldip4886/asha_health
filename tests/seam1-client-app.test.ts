@@ -437,7 +437,84 @@ describe('Seam 1: Client Application Boundary — Ticket 5 (Dual .ics Calendars 
     expect(app.getState().ui.showMasterPrompt).toBe(true);
     expect(root.textContent).toContain('SELURUH RESPONS HARUS MENGGUNAKAN BAHASA INDONESIA.');
   });
+
+  it('provides selectable ethnic group options and progressively reveals Aspiration sub-targets before unlocking Timeframe in Step 4', () => {
+    const root = document.getElementById('app')!;
+    const app = createAshaApp({ root });
+
+    // Step 0: Ethnicity should be a <select> with predefined options
+    const ethnicitySelect = root.querySelector('select[data-field="ethnicity"]') as HTMLSelectElement;
+    expect(ethnicitySelect).not.toBeNull();
+    expect(ethnicitySelect.options.length).toBeGreaterThan(5);
+    expect(Array.from(ethnicitySelect.options).map((o) => o.value)).toContain('Jawa');
+
+    // Navigate to Step 3 (4. Aspirasi, Target & Jangka Waktu)
+    app.goToStep(3);
+
+    // Initially, no aspiration is selected -> timeframe input must NOT be rendered yet
+    expect(root.querySelector('[data-field="durationWeeks"]')).toBeNull();
+
+    // 1. Build Muscle -> shows Muscle Mass (% dari berat badan), hides timeframe until filled
+    app.updateGoal({ aspiration: 'build_muscle' });
+    expect(root.querySelector('[data-field="muscleMassPercent"]')).not.toBeNull();
+    expect(root.querySelector('[data-field="durationWeeks"]')).toBeNull();
+
+    app.updateGoal({ muscleMassPercent: 42 });
+    expect(root.querySelector('[data-field="durationWeeks"]')).not.toBeNull();
+    expect(app.getState().goal.target).toContain('42%');
+
+    // 2. Fat Loss -> shows Fat Percentage (% dari berat badan), hides timeframe until filled
+    app.updateGoal({ aspiration: 'fat_loss' });
+    expect(root.querySelector('[data-field="fatPercent"]')).not.toBeNull();
+    expect(root.querySelector('[data-field="durationWeeks"]')).toBeNull();
+
+    app.updateGoal({ fatPercent: 18 });
+    expect(root.querySelector('[data-field="durationWeeks"]')).not.toBeNull();
+    expect(app.getState().goal.target).toContain('18%');
+
+    // 3. Weight Loss -> shows Target Weight (Kg), hides timeframe until filled
+    app.updateGoal({ aspiration: 'weight_loss' });
+    expect(root.querySelector('[data-field="targetWeightKg"]')).not.toBeNull();
+    expect(root.querySelector('[data-field="durationWeeks"]')).toBeNull();
+
+    app.updateGoal({ targetWeightKg: 65 });
+    expect(root.querySelector('[data-field="durationWeeks"]')).not.toBeNull();
+    expect(app.getState().goal.target).toContain('65 Kg');
+
+    // 4. Improve Mobility -> immediately shows timeframe without requiring extra sub-input
+    app.updateGoal({ aspiration: 'improve_mobility' });
+    expect(root.querySelector('[data-field="durationWeeks"]')).not.toBeNull();
+
+    // 5. Running Performance -> requires both Jarak Lari (runningDistance) and Target Pace (targetPace)
+    app.updateGoal({ aspiration: 'running_performance' });
+    expect(root.querySelector('[data-field="runningDistance"]')).not.toBeNull();
+    expect(root.querySelector('[data-field="targetPace"]')).not.toBeNull();
+    expect(root.querySelector('[data-field="durationWeeks"]')).toBeNull();
+
+    app.updateGoal({ runningDistance: '10K' });
+    expect(root.querySelector('[data-field="durationWeeks"]')).toBeNull();
+
+    app.updateGoal({ targetPace: '5:30 /km' });
+    expect(root.querySelector('[data-field="durationWeeks"]')).not.toBeNull();
+    expect(app.getState().goal.target).toContain('10K');
+    expect(app.getState().goal.target).toContain('5:30 /km');
+
+    // 6. Health Indicator -> requires both targetBiomarker and targetBiomarkerValue
+    app.updateGoal({ aspiration: 'improve_health_indicator' });
+    expect(root.querySelector('select[data-field="targetBiomarker"]')).not.toBeNull();
+    expect(root.querySelector('[data-field="targetBiomarkerValue"]')).not.toBeNull();
+    expect(root.querySelector('[data-field="durationWeeks"]')).toBeNull();
+
+    app.updateGoal({ targetBiomarker: 'ldl' });
+    expect(root.querySelector('[data-field="durationWeeks"]')).toBeNull();
+
+    app.updateGoal({ targetBiomarkerValue: '< 100 mg/dL' });
+    expect(root.querySelector('[data-field="durationWeeks"]')).not.toBeNull();
+    expect(app.getState().goal.target).toContain('LDL');
+    expect(app.getState().goal.target).toContain('< 100 mg/dL');
+  });
 });
+
 
 
 

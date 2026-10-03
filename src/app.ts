@@ -6,6 +6,7 @@ import {
   BiomarkerKey,
   ConditionalQuestionItem,
   DietType,
+  ETHNICITY_OPTIONS,
   EquipmentItem,
   ExerciseVisualMode,
   FastingProtocol,
@@ -42,6 +43,68 @@ function incrementMinorVersion(version: string): string {
   const major = parseInt(match[1], 10);
   const minor = parseInt(match[2], 10) + 1;
   return `v${major}.${minor}`;
+}
+
+function isGoalTargetReadyForTimeframe(goal: GoalState): boolean {
+  if (!goal.aspiration) return false;
+  switch (goal.aspiration) {
+    case 'build_muscle':
+      return goal.muscleMassPercent !== null && goal.muscleMassPercent !== undefined;
+    case 'fat_loss':
+      return goal.fatPercent !== null && goal.fatPercent !== undefined;
+    case 'weight_loss':
+      return goal.targetWeightKg !== null && goal.targetWeightKg !== undefined;
+    case 'improve_mobility':
+    case 'improve_overall_health':
+      return true;
+    case 'running_performance':
+      return Boolean(
+        goal.runningDistance && goal.targetPace && goal.targetPace.trim().length > 0
+      );
+    case 'improve_health_indicator':
+      return Boolean(
+        goal.targetBiomarker &&
+          goal.targetBiomarkerValue &&
+          goal.targetBiomarkerValue.trim().length > 0
+      );
+    default:
+      return false;
+  }
+}
+
+function deriveStructuredTargetSummary(goal: GoalState): string | null {
+  switch (goal.aspiration) {
+    case 'build_muscle':
+      return goal.muscleMassPercent !== null && goal.muscleMassPercent !== undefined
+        ? `Muscle Mass: ${goal.muscleMassPercent}% (% dari berat badan)`
+        : goal.target;
+    case 'fat_loss':
+      return goal.fatPercent !== null && goal.fatPercent !== undefined
+        ? `Fat Percentage: ${goal.fatPercent}% (% dari berat badan)`
+        : goal.target;
+    case 'weight_loss':
+      return goal.targetWeightKg !== null && goal.targetWeightKg !== undefined
+        ? `Target Weight: ${goal.targetWeightKg} Kg`
+        : goal.target;
+    case 'improve_mobility':
+      return goal.target ?? 'Improve Mobility';
+    case 'running_performance':
+      if (goal.runningDistance && goal.targetPace) {
+        return `Jarak Lari: ${goal.runningDistance}, Target Pace: ${goal.targetPace}`;
+      }
+      return goal.target;
+    case 'improve_health_indicator':
+      if (goal.targetBiomarker && goal.targetBiomarkerValue) {
+        const label =
+          goal.targetBiomarker === 'other'
+            ? 'Other Indicator'
+            : BIOMARKER_LABELS[goal.targetBiomarker];
+        return `${label}: ${goal.targetBiomarkerValue}`;
+      }
+      return goal.target;
+    default:
+      return goal.target;
+  }
 }
 
 function createInitialHealthSnapshot(): HealthSnapshot {
@@ -86,9 +149,14 @@ export function createInitialState(): AshaAppState {
     goal: {
       aspiration: null,
       target: null,
+      muscleMassPercent: null,
+      fatPercent: null,
+      targetWeightKg: null,
       runningDistance: null,
+      targetPace: null,
       currentPerformance: null,
-      targetBiomarker: null
+      targetBiomarker: null,
+      targetBiomarkerValue: null
     },
     timeframe: {
       durationWeeks: null,
@@ -217,10 +285,180 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
     state.confirmation.confirmed = false;
   }
 
+  function renderStep4GoalSection(isId: boolean): string {
+    const aspiration = state.goal.aspiration;
+    let targetStageHtml = '';
+
+    if (aspiration === 'build_muscle') {
+      targetStageHtml = `
+        <label>
+          <span>${isId ? 'Muscle Mass (% dari berat badan)' : 'Muscle Mass (% of body weight)'}</span>
+          <input type="number" step="0.1" data-field="muscleMassPercent" value="${
+            state.goal.muscleMassPercent ?? ''
+          }" placeholder="42" />
+        </label>
+      `;
+    } else if (aspiration === 'fat_loss') {
+      targetStageHtml = `
+        <label>
+          <span>${
+            isId ? 'Fat Percentage (% dari berat badan)' : 'Fat Percentage (% of body weight)'
+          }</span>
+          <input type="number" step="0.1" data-field="fatPercent" value="${
+            state.goal.fatPercent ?? ''
+          }" placeholder="18" />
+        </label>
+      `;
+    } else if (aspiration === 'weight_loss') {
+      targetStageHtml = `
+        <label>
+          <span>${isId ? 'Target Weight (Kg)' : 'Target Weight (Kg)'}</span>
+          <input type="number" step="0.1" data-field="targetWeightKg" value="${
+            state.goal.targetWeightKg ?? ''
+          }" placeholder="65" />
+        </label>
+      `;
+    } else if (aspiration === 'improve_mobility') {
+      targetStageHtml = `
+        <p class="asha-stage-note">${
+          isId
+            ? 'Improve Mobility dipilih — silakan langsung tentukan target waktu Anda di bawah.'
+            : 'Improve Mobility selected — you may proceed directly to set your target timeframe below.'
+        }</p>
+      `;
+    } else if (aspiration === 'improve_overall_health') {
+      targetStageHtml = `
+        <label>
+          <span>${isId ? 'Target Spesifik (Opsional)' : 'Specific Target (Optional)'}</span>
+          <input type="text" data-field="target" value="${state.goal.target ?? ''}" />
+        </label>
+      `;
+    } else if (aspiration === 'running_performance') {
+      targetStageHtml = `
+        <label>
+          <span>${isId ? 'Jarak Lari' : 'Running Distance'}</span>
+          <select data-field="runningDistance">
+            <option value="" ${!state.goal.runningDistance ? 'selected' : ''}>${
+              isId ? '-- Pilih Jarak --' : '-- Select Distance --'
+            }</option>
+            <option value="5K" ${state.goal.runningDistance === '5K' ? 'selected' : ''}>5K</option>
+            <option value="10K" ${state.goal.runningDistance === '10K' ? 'selected' : ''}>10K</option>
+            <option value="half_marathon" ${
+              state.goal.runningDistance === 'half_marathon' ? 'selected' : ''
+            }>Half Marathon</option>
+            <option value="full_marathon" ${
+              state.goal.runningDistance === 'full_marathon' ? 'selected' : ''
+            }>Full Marathon</option>
+          </select>
+        </label>
+        <label>
+          <span>${isId ? 'Target Pace (menit/km atau waktu tempuh)' : 'Target Pace'}</span>
+          <input type="text" data-field="targetPace" value="${
+            state.goal.targetPace ?? ''
+          }" placeholder="5:30 /km" />
+        </label>
+        <label>
+          <span>${isId ? 'Performa Saat Ini (Opsional)' : 'Current Performance (Optional)'}</span>
+          <input type="text" data-field="currentPerformance" value="${
+            state.goal.currentPerformance ?? ''
+          }" />
+        </label>
+      `;
+    } else if (aspiration === 'improve_health_indicator') {
+      const biomarkerOptions = BIOMARKER_KEYS.map(
+        (key) =>
+          `<option value="${key}" ${
+            state.goal.targetBiomarker === key ? 'selected' : ''
+          }>${BIOMARKER_LABELS[key]}</option>`
+      ).join('');
+
+      targetStageHtml = `
+        <label>
+          <span>${isId ? 'Indikator Kesehatan' : 'Health Indicator'}</span>
+          <select data-field="targetBiomarker">
+            <option value="" ${!state.goal.targetBiomarker ? 'selected' : ''}>${
+              isId ? '-- Pilih Indikator --' : '-- Select Indicator --'
+            }</option>
+            ${biomarkerOptions}
+            <option value="other" ${state.goal.targetBiomarker === 'other' ? 'selected' : ''}>${
+              isId ? 'Lainnya' : 'Other'
+            }</option>
+          </select>
+        </label>
+        <label>
+          <span>${isId ? 'Target Indikator Kesehatan' : 'Target Indicator Value'}</span>
+          <input type="text" data-field="targetBiomarkerValue" value="${
+            state.goal.targetBiomarkerValue ?? ''
+          }" placeholder="< 100 mg/dL" />
+        </label>
+      `;
+    }
+
+    const showTimeframe = isGoalTargetReadyForTimeframe(state.goal);
+    const timeframeHtml = showTimeframe
+      ? `
+        <div class="asha-timeframe-stage">
+          <label>
+            <span>${isId ? 'Target Waktu / Durasi Rencana (Minggu)' : 'Target Timeframe (Weeks)'}</span>
+            <input type="number" data-field="durationWeeks" value="${
+              state.timeframe.durationWeeks ?? ''
+            }" placeholder="8" />
+          </label>
+        </div>
+      `
+      : '';
+
+    return `
+      <section class="asha-card">
+        <h2>${isId ? '4. Aspirasi, Target & Jangka Waktu' : '4. Aspiration, Target & Timeframe'}</h2>
+        <div class="asha-grid">
+          <label>
+            <span>${isId ? 'Aspirasi Utama' : 'Primary Aspiration'}</span>
+            <select data-field="aspiration">
+              <option value="" ${state.goal.aspiration === null ? 'selected' : ''}>${
+                isId ? '-- Pilih Aspirasi --' : '-- Select Aspiration --'
+              }</option>
+              <option value="build_muscle" ${
+                state.goal.aspiration === 'build_muscle' ? 'selected' : ''
+              }>Build Muscle</option>
+              <option value="fat_loss" ${
+                state.goal.aspiration === 'fat_loss' ? 'selected' : ''
+              }>Fat Loss</option>
+              <option value="weight_loss" ${
+                state.goal.aspiration === 'weight_loss' ? 'selected' : ''
+              }>Weight Loss</option>
+              <option value="improve_mobility" ${
+                state.goal.aspiration === 'improve_mobility' ? 'selected' : ''
+              }>Improve Mobility</option>
+              <option value="improve_overall_health" ${
+                state.goal.aspiration === 'improve_overall_health' ? 'selected' : ''
+              }>Improve Overall Health</option>
+              <option value="running_performance" ${
+                state.goal.aspiration === 'running_performance' ? 'selected' : ''
+              }>Running Performance</option>
+              <option value="improve_health_indicator" ${
+                state.goal.aspiration === 'improve_health_indicator' ? 'selected' : ''
+              }>Improve Health Indicator</option>
+            </select>
+          </label>
+          ${targetStageHtml}
+        </div>
+        ${timeframeHtml}
+      </section>
+    `;
+  }
+
   function renderStepContent(isId: boolean): string {
     const step = state.ui.currentStep;
 
     if (step === 0) {
+      const ethnicityOptionsHtml = ETHNICITY_OPTIONS.map(
+        (eth) =>
+          `<option value="${eth}" ${
+            state.personal.ethnicity === eth ? 'selected' : ''
+          }>${eth}</option>`
+      ).join('');
+
       return `
         <section class="asha-card">
           <h2>${isId ? '1. Informasi Pribadi' : '1. Personal Information'}</h2>
@@ -261,7 +499,12 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
             </label>
             <label>
               <span>${isId ? 'Suku / Etnis (Opsional)' : 'Ethnic Group (Optional)'}</span>
-              <input type="text" data-field="ethnicity" value="${state.personal.ethnicity ?? ''}" />
+              <select data-field="ethnicity">
+                <option value="" ${!state.personal.ethnicity ? 'selected' : ''}>${
+                  isId ? '-- Pilih Etnis (Opsional) --' : '-- Select Ethnic Group (Optional) --'
+                }</option>
+                ${ethnicityOptionsHtml}
+              </select>
             </label>
           </div>
         </section>
@@ -330,52 +573,7 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
     }
 
     if (step === 3) {
-      return `
-        <section class="asha-card">
-          <h2>${isId ? '4. Aspirasi, Target & Jangka Waktu' : '4. Aspiration, Target & Timeframe'}</h2>
-          <div class="asha-grid">
-            <label>
-              <span>${isId ? 'Aspirasi Utama' : 'Primary Aspiration'}</span>
-              <select data-field="aspiration">
-                <option value="">${isId ? '-- Pilih --' : '-- Select --'}</option>
-                <option value="build_muscle" ${state.goal.aspiration === 'build_muscle' ? 'selected' : ''}>Build Muscle</option>
-                <option value="fat_loss" ${state.goal.aspiration === 'fat_loss' ? 'selected' : ''}>Fat Loss</option>
-                <option value="weight_loss" ${state.goal.aspiration === 'weight_loss' ? 'selected' : ''}>Weight Loss</option>
-                <option value="improve_mobility" ${state.goal.aspiration === 'improve_mobility' ? 'selected' : ''}>Improve Mobility</option>
-                <option value="improve_overall_health" ${state.goal.aspiration === 'improve_overall_health' ? 'selected' : ''}>Improve Overall Health</option>
-                <option value="running_performance" ${state.goal.aspiration === 'running_performance' ? 'selected' : ''}>Running Performance</option>
-                <option value="improve_health_indicator" ${state.goal.aspiration === 'improve_health_indicator' ? 'selected' : ''}>Improve Health Indicator</option>
-              </select>
-            </label>
-            <label>
-              <span>${isId ? 'Target Spesifik' : 'Specific Target'}</span>
-              <input type="text" data-field="target" value="${state.goal.target ?? ''}" />
-            </label>
-            <label>
-              <span>${isId ? 'Jarak Lari (Jika Lari)' : 'Running Distance (If Running)'}</span>
-              <select data-field="runningDistance">
-                <option value="">--</option>
-                <option value="5K" ${state.goal.runningDistance === '5K' ? 'selected' : ''}>5K</option>
-                <option value="10K" ${state.goal.runningDistance === '10K' ? 'selected' : ''}>10K</option>
-                <option value="half_marathon" ${state.goal.runningDistance === 'half_marathon' ? 'selected' : ''}>Half Marathon</option>
-                <option value="full_marathon" ${state.goal.runningDistance === 'full_marathon' ? 'selected' : ''}>Full Marathon</option>
-              </select>
-            </label>
-            <label>
-              <span>${isId ? 'Performa Saat Ini (Opsional)' : 'Current Performance (Optional)'}</span>
-              <input type="text" data-field="currentPerformance" value="${state.goal.currentPerformance ?? ''}" />
-            </label>
-            <label>
-              <span>${isId ? 'Indikator Kesehatan Target (Opsional)' : 'Target Biomarker (Optional)'}</span>
-              <input type="text" data-field="targetBiomarker" value="${state.goal.targetBiomarker ?? ''}" />
-            </label>
-            <label>
-              <span>${isId ? 'Durasi Rencana (Minggu)' : 'Timeframe (Weeks)'}</span>
-              <input type="number" data-field="durationWeeks" value="${state.timeframe.durationWeeks ?? ''}" placeholder="8" />
-            </label>
-          </div>
-        </section>
-      `;
+      return renderStep4GoalSection(isId);
     }
 
     if (step === 4) {
@@ -815,7 +1013,7 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
     });
 
     root.querySelector('[data-field="ethnicity"]')?.addEventListener('change', (e) => {
-      const val = (e.target as HTMLInputElement).value.trim();
+      const val = (e.target as HTMLSelectElement).value.trim();
       updatePersonal({ ethnicity: val || null });
     });
 
@@ -855,6 +1053,21 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
       updateGoal({ aspiration: val || null });
     });
 
+    root.querySelector('[data-field="muscleMassPercent"]')?.addEventListener('change', (e) => {
+      const val = parseFloat((e.target as HTMLInputElement).value);
+      updateGoal({ muscleMassPercent: Number.isNaN(val) ? null : val });
+    });
+
+    root.querySelector('[data-field="fatPercent"]')?.addEventListener('change', (e) => {
+      const val = parseFloat((e.target as HTMLInputElement).value);
+      updateGoal({ fatPercent: Number.isNaN(val) ? null : val });
+    });
+
+    root.querySelector('[data-field="targetWeightKg"]')?.addEventListener('change', (e) => {
+      const val = parseFloat((e.target as HTMLInputElement).value);
+      updateGoal({ targetWeightKg: Number.isNaN(val) ? null : val });
+    });
+
     root.querySelector('[data-field="target"]')?.addEventListener('change', (e) => {
       const val = (e.target as HTMLInputElement).value.trim();
       updateGoal({ target: val || null });
@@ -865,14 +1078,24 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
       updateGoal({ runningDistance: val || null });
     });
 
+    root.querySelector('[data-field="targetPace"]')?.addEventListener('change', (e) => {
+      const val = (e.target as HTMLInputElement).value.trim();
+      updateGoal({ targetPace: val || null });
+    });
+
     root.querySelector('[data-field="currentPerformance"]')?.addEventListener('change', (e) => {
       const val = (e.target as HTMLInputElement).value.trim();
       updateGoal({ currentPerformance: val || null });
     });
 
     root.querySelector('[data-field="targetBiomarker"]')?.addEventListener('change', (e) => {
-      const val = (e.target as HTMLInputElement).value.trim() as BiomarkerKey | 'other' | '';
+      const val = (e.target as HTMLSelectElement).value.trim() as BiomarkerKey | 'other' | '';
       updateGoal({ targetBiomarker: val || null });
+    });
+
+    root.querySelector('[data-field="targetBiomarkerValue"]')?.addEventListener('change', (e) => {
+      const val = (e.target as HTMLInputElement).value.trim();
+      updateGoal({ targetBiomarkerValue: val || null });
     });
 
     root.querySelector('[data-field="durationWeeks"]')?.addEventListener('change', (e) => {
@@ -1156,6 +1379,9 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
   function updateGoal(patch: Partial<GoalState>) {
     markDirty();
     state.goal = { ...state.goal, ...patch };
+    if (!('target' in patch)) {
+      state.goal.target = deriveStructuredTargetSummary(state.goal);
+    }
     render();
   }
 
