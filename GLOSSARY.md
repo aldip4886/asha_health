@@ -56,20 +56,24 @@ _Avoid_: Package, subscription tier
 The coordination strategy when `Training + Meal Plan` is selected: either `Independent` or `Optimize Together` (aligning energy intake, macronutrients, and meal timing with training load and recovery).
 _Avoid_: Sync mode, combined mode
 
+**Training Type**:
+The exercise modality categories selected by the user (`Cardio`, `Strength`, or `Mobility & Flexibility`) that shape the structure of the prescribed workout sessions.
+_Avoid_: Workout genre, sport class
+
 **Master Prompt**:
-The structured English instruction document assembled from verified user context, disclosed AI Assumptions, Sex-Aware Context, and safety rules that instructs the AI to generate and converse in Bahasa Indonesia.
+The structured English instruction document assembled from verified user context, disclosed AI Assumptions, Sex-Aware Context, and safety rules that is copied to the user's clipboard upon confirmation and instructs the chosen AI companion to generate a day-by-day plan, detailed exercise movement guide (with external visual references such as DAREBEE), and `.ics` calendar blocks in Bahasa Indonesia.
 _Avoid_: System query, payload
 
 **Personal Trainer Chat**:
-The ongoing Bahasa Indonesia conversation with the AI companion primed by the user's verified context, serving as the living source of truth for plan adjustments and version increments (`v1.0`, `v1.1`, etc.).
+The ongoing Bahasa Indonesia conversation with the AI companion (ChatGPT, Gemini, Claude, Grok, or Copilot) primed by the user's verified Master Prompt, serving as the living source of truth for plan adjustments and version increments (`v1.0`, `v1.1`, etc.).
 _Avoid_: Helpdesk bot, medical consultation
 
 **Training Calendar**:
-The dedicated schedule of workout and recovery sessions (`My Training Plan`), kept strictly separate from nutrition events.
+The dedicated `.ics` schedule of workout and recovery sessions (`My Training Plan`) starting from the user's selected Plan Start Date and compatible with Google, Outlook, and Apple Calendar, kept strictly separate from nutrition events.
 _Avoid_: Workout log, general calendar
 
 **Diet Calendar**:
-The dedicated schedule of daily meals, eating windows, and hydration reminders (`My Diet Plan`), kept strictly separate from training events.
+The dedicated `.ics` schedule of daily meals, eating windows, and hydration reminders (`My Diet Plan`) starting from the user's selected Plan Start Date and compatible with Google, Outlook, and Apple Calendar, kept strictly separate from training events.
 _Avoid_: Meal log, food diary
 
 **Context Snapshot**:

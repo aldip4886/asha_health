@@ -64,28 +64,21 @@ ASHA is not:
 
 ``` text
 Start
-→ Personal Information
-→ Health Snapshot
-→ Health Report / OCR
-→ Goal / Aspiration
-→ Target
-→ Time Frame
-→ Schedule
-→ Equipment
-→ Diet
-→ Plan Type
-→ Calendar
-→ Exercise Visual Preferences
-→ Review
-→ User Confirmation
-→ Generate Master Prompt
-→ Copy Prompt
-→ Open Gemini
-→ Gemini Generates Plan
-→ Review Plan
-→ Personal Trainer Chat
-→ Adapt Plan
-→ Update Calendars
+→ Step 1/7: Personal Information (What should I call you?, Age, Sex, Height, Weight, Ethnic Group)
+→ Step 2/7: Health Report / OCR Upload (Verify & Confirm Extracted Biomarkers)
+→ Step 3/7: Health Snapshot (Authoritative Biomarkers & Other Indicators)
+→ Step 4/7: Staged Goal / Aspiration → Specific Target → Target Timeframe (Weeks)
+→ Step 5/7: Schedule (Training Days + Select All, Rest Days, Training Types, Equipment)
+            --- Session Divider ---
+            Training Time (Time Picker) & Session Duration
+            --- Session Divider ---
+            Diet Preference (+ Conditional IF Protocol & Eating Window)
+→ Step 6/7: Plan Type, Integration Mode, Plan Start Date (Date Picker), Calendar Platform (Google/Outlook/Apple), Visual Mode & Conditional Context
+→ Step 7/7: Mandatory Review & Confirmation ("Sebelumnya" & "Mulai Lagi" Navigation)
+→ User Confirmation Checkbox
+→ Automatic Master Prompt Copy to Clipboard + Personalized Pop-up Notice with Random Motivational Quote
+→ Launch Preferred AI Chat Interface (ChatGPT, Gemini, Claude, Grok, or Copilot)
+→ Generative AI Produces Detailed Day-by-Day Plan, Exercise Guide (with DAREBEE visuals) & .ICS Calendar Blocks
 ```
 
 ------------------------------------------------------------------------
@@ -94,19 +87,20 @@ Start
 
 Fields:
 
+-   preferred name / nickname (`What should I call you?`);
 -   age;
 -   sex;
--   ethnic group;
+-   ethnic group (`Asian`, `Kaukasian`, `American`, `Latin`, `Indian`, `Other`);
 -   height;
 -   weight.
 
 Rules:
 
+-   Preferred name / nickname is used to personalize the confirmation pop-up greeting and AI conversation greeting.
 -   Age is generally critical.
 -   Height and weight are important when relevant.
--   Sex is used as contextual information, not as a standalone
-    determinant.
--   Ethnic group is optional.
+-   Sex is used as contextual information, not as a standalone determinant.
+-   Ethnic group is optional (`Asian`, `Kaukasian`, `American`, `Latin`, `Indian`, `Other`).
 -   Never infer ethnicity.
 
 ## 4.1 Sex Selection
@@ -245,72 +239,67 @@ Extracted values are not authoritative until user confirmation.
 
 ------------------------------------------------------------------------
 
-# 8. Goals
+# 8. Goals (Staged Disclosure — Step 4/7)
 
-Supported goals:
+Step 4/7 uses progressive disclosure:
 
--   build muscle;
--   fat loss;
--   weight loss;
--   improve mobility;
--   improve overall health;
--   running performance;
--   improve health indicator.
-
-Running:
-
--   5K;
--   10K;
--   half marathon;
--   full marathon;
--   target pace or finish time;
--   optional current performance and training history.
-
-Health indicator:
-
--   blood pressure;
--   glucose;
--   uric acid;
--   total cholesterol;
--   LDL;
--   HDL;
--   triglycerides;
--   resting heart rate;
--   other.
+1.  **Primary Aspiration Selection**:
+    -   `build_muscle` (Build Muscle) → reveals **Muscle Mass (% dari berat badan)** input;
+    -   `fat_loss` (Fat Loss) → reveals **Fat Percentage (% dari berat badan)** input;
+    -   `weight_loss` (Weight Loss) → reveals **Target Weight (Kg)** input;
+    -   `improve_mobility` (Improve Mobility) → proceeds directly without a sub-target numerical input;
+    -   `running_performance` (Running Performance) → reveals **Running Distance** (`5K`, `10K`, `Half Marathon`, `Full Marathon`) and **Target Pace** inputs;
+    -   `health_indicator` (Health Indicator) → reveals **Health Indicator** (`Blood Pressure`, `Glucose`, `Uric Acid`, `Total Cholesterol`, `LDL`, `HDL`, `Triglycerides`, `Resting Heart Rate`, `Other`) and **Target Indicator Value** inputs.
+2.  **Target Timeframe (Weeks)**:
+    -   Revealed only after the Primary Aspiration and its required sub-target fields (if any) have been filled.
 
 ------------------------------------------------------------------------
 
-# 9. Schedule
+# 9. Schedule, Training Types & Equipment (Step 5/7)
 
-Inputs:
+Step 5/7 is organized into **3 visual session blocks** separated by 2 `<hr class="asha-session-divider" />` dividers:
 
--   training days;
--   session duration;
--   rest days;
--   preferred training time.
+1.  **Session Block 1 — Days, Training Types & Equipment**:
+    -   **Training Days** checkboxes (`Senin`–`Minggu`) with a **Pilih Semua (Select All)** master checkbox. When **Pilih Semua (Select All)** is checked, all 7 training days are selected and all **Rest Days** checkboxes are automatically cleared and disabled (greyed out).
+    -   **Rest Days** checkboxes (`Senin`–`Minggu`).
+    -   **Training Types (Jenis Latihan)** multiple-select checkboxes placed immediately before Available Equipment:
+        -   `Cardio`
+        -   `Strength`
+        -   `Mobility & Flexibility`
+    -   **Available Equipment (Peralatan yang Tersedia)** checkboxes:
+        -   `Tidak Ada (Gunakan Bodyweight)`
+        -   `Dumbbells`
+        -   `Barbell`
+        -   `Fitness Ball`
+        -   `Treadmil / Walking Pad`
+2.  **Session Block 2 — Training Time & Duration**:
+    -   **Preferred Training Time** (`<input type="time">` time picker);
+    -   **Session Duration (minutes)**.
+3.  **Session Block 3 — Diet Preference**:
+    -   **Diet Pattern** (`No Specific Diet`, `Vegan`, `Vegetarian`, `Carnivore`, `Keto`, `Intermittent Fasting`);
+    -   When `Intermittent Fasting` is selected, conditionally reveals **IF Protocol** (`12:12`, `14:10`, `16:8`, `18:6`, `Custom`) and **Eating Window** (`<input type="text">`, e.g., `12:00 - 20:00`).
 
 AI may propose conservative assumptions when non-critical information is
-missing.
-
-Every assumption must be disclosed.
+missing. Every assumption must be disclosed.
 
 ------------------------------------------------------------------------
 
-# 10. Equipment
+# 10. Equipment Rules
 
-Supported:
+Supported equipment options:
 
--   bodyweight;
--   dumbbells;
--   barbell;
--   fitness ball.
+-   `Tidak Ada (Gunakan Bodyweight)` (bodyweight);
+-   `Dumbbells`;
+-   `Barbell`;
+-   `Fitness Ball`;
+-   `Treadmil / Walking Pad`.
 
 Hard rule:
 
 > Never prescribe an exercise requiring equipment the user does not
 > have.
 
-If nothing is selected, default to bodyweight with explicit notice.
+If nothing is selected or `Tidak Ada (Gunakan Bodyweight)` is chosen, default to bodyweight with explicit notice.
 
 ------------------------------------------------------------------------
 
@@ -325,7 +314,7 @@ Supported:
 -   keto;
 -   intermittent fasting.
 
-IF:
+IF (conditional upon selecting `intermittent_fasting`):
 
 -   12:12;
 -   14:10;
@@ -367,7 +356,7 @@ Training should primarily reflect:
 4.  body measurements;
 5.  fitness level;
 6.  training experience;
-7.  schedule;
+7.  schedule & preferred training types (`Cardio`, `Strength`, `Mobility & Flexibility`);
 8.  equipment;
 9.  recovery;
 10. relevant physiological context.
@@ -415,18 +404,22 @@ Do not assume these conditions.
 
 ------------------------------------------------------------------------
 
-# 15. Plan Type
+# 15. Plan Type, Start Date & Calendar Platform (Step 6/7)
 
-Options:
+Step 6/7 collects:
 
--   training plan only;
--   meal plan only;
--   training + meal plan.
-
-If both:
-
--   independently;
--   optimize together.
+-   **Plan Type**:
+    -   `training_only` (Training Plan Only);
+    -   `meal_only` (Meal Plan Only);
+    -   `integrated` (Training + Meal Plan — optimized together).
+-   **Plan Start Date (Tanggal Mulai Plan)**:
+    -   `<input type="date">` date picker defining Day 1 of the generated daily schedule and `.ics` calendar events.
+-   **Calendar Platform (Pilihan Kalender)**:
+    -   `Google` (Google Calendar);
+    -   `Outlook` (Microsoft Outlook);
+    -   `Apple` (Apple Calendar).
+-   **Exercise Visual Reference Preference**:
+    -   External visual references (e.g. `https://darebee.com`).
 
 Integrated requirement:
 
@@ -437,32 +430,18 @@ Integrated requirement:
 
 ------------------------------------------------------------------------
 
-# 16. Exercise Guide
+# 16. Exercise Guide & Detailed Daily Schedule
 
-Each exercise should include:
+The Master Prompt instructs the AI to output a **detailed day-by-day Training Plan and Meal Plan** across the entire target timeframe starting from the user's selected **Plan Start Date**.
 
--   name;
--   objective;
--   primary muscles/area;
--   difficulty;
--   equipment;
--   starting position;
--   step-by-step instructions;
--   breathing;
--   sets/reps/time;
--   rest;
--   common mistakes;
--   safety cues;
--   modification;
--   progression;
--   visual/reference.
+Additionally, every prescribed exercise must include a mandatory **Panduan Gerakan Latihan (Exercise Movement Guide)** containing:
 
-Visual modes:
-
-1.  external reference;
-2.  AI-generated illustration;
-3.  video reference;
-4.  text-only fallback.
+-   exercise name;
+-   **fungsi / manfaat gerakan** (function and benefit of the movement);
+-   **otot yang dilatih** (primary and secondary muscles worked);
+-   **repetisi** (sets, reps, tempo, or duration);
+-   **cara melakukan gerakan** (step-by-step execution instructions, starting position, breathing, and safety cues);
+-   **contoh (gambar gerakan)** referencing external fitness libraries such as `https://darebee.com/workouts.html` or `https://darebee.com/exercises/` (with text-only fallback if a specific visual URL is unavailable).
 
 DAREBEE may be used as an external reference provider, but third-party
 copyrighted images must not be copied or hosted without appropriate
@@ -472,9 +451,9 @@ permission.
 
 # 17. Meal Plan
 
-Should include:
+Should include a detailed **day-by-day schedule** covering:
 
--   daily meals;
+-   daily meals for every day of the target timeframe;
 -   food choices;
 -   portion guidance;
 -   estimated energy where appropriate;
@@ -483,7 +462,7 @@ Should include:
 -   fats;
 -   fiber;
 -   hydration;
--   meal timing;
+-   meal timing (aligned with Training Time and IF Eating Window when applicable);
 -   diet compatibility.
 
 Estimates are not medical prescriptions.
@@ -514,30 +493,38 @@ Monitoring:
 
 ------------------------------------------------------------------------
 
-# 19. Mandatory Review
+# 19. Mandatory Review, Auto-Copy Popup & Multi-AI Handoff (Step 7/7)
 
-Before prompt generation, show:
+Before confirmation, Step 7/7 displays the review summary:
 
--   personal information;
--   sex;
--   health snapshot;
--   OCR values;
--   goal;
--   target;
--   timeframe;
--   schedule;
--   equipment;
--   diet;
--   plan type;
--   integration mode;
--   AI assumptions;
--   relevant physiological considerations;
--   safety considerations.
+-   personal information (including nickname `"What should I call you?"`, sex, and ethnicity);
+-   OCR values (Step 2) & authoritative health snapshot (Step 3);
+-   goal, staged target, and timeframe (Step 4);
+-   schedule, training types (`Cardio`, `Strength`, `Mobility & Flexibility`), equipment, preferred training time, session duration, and diet/IF protocol (Step 5);
+-   plan type, plan start date, and calendar platform (Step 6);
+-   AI assumptions, relevant physiological considerations, and safety notices.
 
-Required checkbox:
+Navigation & Confirmation Rules on Step 7/7:
 
-> Saya telah memeriksa informasi dan asumsi yang akan digunakan untuk
-> membuat prompt.
+-   Standard wizard navigation buttons (`Selanjutnya`) are hidden and replaced exclusively by **"Sebelumnya"** (to return to Step 6/7) and **"Mulai Lagi"** (to reset the session and return to Step 1/7).
+-   Only the mandatory confirmation checkbox is shown after the review statement:
+    > Saya telah memeriksa informasi dan asumsi yang akan digunakan untuk membuat prompt.
+-   When the user checks the confirmation checkbox:
+    1.  The Master Prompt is **not** displayed on screen.
+    2.  Instead, the Master Prompt is **automatically copied to the user's clipboard**.
+    3.  A personalized **Pop-Up Message (`role="dialog"`)** appears displaying:
+        ``` text
+        Selamat [nama_pengguna], prompt kamu sudah siap!
+        Silakan klik AI Chat Interface favoritmu untuk membuat plan.
+        “[Random motivational quote]”
+        ```
+        where `[nama_pengguna]` is the user's nickname from Step 1/7 (defaulting to `"Teman ASHA"` if left blank) and the motivational quote is randomly selected from ASHA's curated quote pool.
+    4.  Five clickable **AI Chat Interface logo buttons** are rendered so the user can immediately open and paste the prompt into their preferred AI assistant:
+        -   **ChatGPT** (`https://chatgpt.com/`)
+        -   **Gemini** (`https://gemini.google.com/`)
+        -   **Claude** (`https://claude.ai/`)
+        -   **Grok** (`https://grok.com/`)
+        -   **Copilot** (`https://copilot.microsoft.com/`)
 
 ------------------------------------------------------------------------
 
@@ -553,27 +540,21 @@ MVP:
 -   no database;
 -   no analytics/logging of personal health data;
 -   runtime JavaScript memory only;
--   Clear Session wipes state;
+-   Clear Session / Mulai Lagi wipes state;
 -   refresh/close discards data.
 
-Once information is pasted into Gemini, handling is subject to Gemini's
-applicable policies and account controls.
+Once information is pasted into the user's chosen AI Chat Interface, handling is subject to that provider's applicable policies and account controls.
 
 ------------------------------------------------------------------------
 
-# 21. Calendar
+# 21. Calendar (`.ics` Generated by Generative AI)
 
 Two separate calendars:
 
-1.  My Training Plan
-2.  My Diet Plan
+1.  `My Training Plan` (`asha-training-plan.ics`)
+2.  `My Diet Plan` (`asha-diet-plan.ics`)
 
-MVP:
-
--   generate `.ics`;
--   preview;
--   user confirmation;
--   manual import.
+In v1.7, `.ics` calendar files are generated **by the Generative AI inside the chat interface** after the user pastes the Master Prompt, anchored to the user's selected **Plan Start Date** and formatted for the user's chosen **Calendar Platform** (`Google`, `Outlook`, or `Apple`) for manual import.
 
 Never merge, overwrite, or modify existing calendars without explicit
 future integration.
@@ -582,11 +563,11 @@ future integration.
 
 # 22. Personal Trainer Chat
 
-The Gemini conversation is the source of truth for ongoing plan context.
+The AI Chat conversation (Gemini, ChatGPT, Claude, Grok, or Copilot) is the source of truth for ongoing plan context.
 
 ASHA should instruct:
 
-> Jangan membuat percakapan Gemini baru. Gunakan percakapan ini sebagai
+> Jangan membuat percakapan baru. Gunakan percakapan ini sebagai
 > Personal Trainer Chat ASHA.
 
 Plan versioning:
@@ -602,7 +583,7 @@ plan.
 
 # 23. Safety
 
-Gemini must:
+The AI assistant must:
 
 -   provide educational/general information;
 -   not diagnose;
@@ -620,19 +601,18 @@ Urgent symptoms require appropriate urgent medical care.
 
 ``` text
 ☐ Health values not fabricated
-☐ Goal matches plan
-☐ Target clearly identified
-☐ Timeframe considered
-☐ Equipment respected
-☐ Diet respected
+☐ User nickname greeted and used in popup & prompt
+☐ Goal & staged sub-target clearly identified
+☐ Timeframe and Plan Start Date considered
+☐ Training Types (Cardio, Strength, Mobility & Flexibility) respected
+☐ Equipment respected (including Tidak Ada / Bodyweight and Treadmil / Walking Pad)
+☐ Diet & IF protocol respected
 ☐ Sex-aware factors considered only when relevant
 ☐ No sex-based stereotyping
-☐ Training and nutrition integrated when requested
-☐ Exercises have instructions
-☐ References valid or fallback provided
-☐ URLs not fabricated
+☐ Detailed day-by-day Training & Meal Plan generated for full timeframe
+☐ Every exercise includes fungsi/manfaat, otot yang dilatih, repetisi, cara melakukan, and darebee.com visual reference
 ☐ Safety cues present
 ☐ Assumptions disclosed
-☐ Calendar separation preserved
+☐ Generative AI .ics calendar blocks separated (Training vs. Diet)
 ☐ Output in Bahasa Indonesia
 ```
