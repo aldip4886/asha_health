@@ -37,6 +37,28 @@ export type BiomarkerKey =
   | 'hdl'
   | 'triglycerides';
 
+export const BIOMARKER_KEYS: BiomarkerKey[] = [
+  'bloodPressure',
+  'restingHeartRate',
+  'bloodGlucose',
+  'uricAcid',
+  'totalCholesterol',
+  'ldl',
+  'hdl',
+  'triglycerides'
+];
+
+export const BIOMARKER_LABELS: Record<BiomarkerKey, string> = {
+  bloodPressure: 'Blood Pressure',
+  restingHeartRate: 'Resting Heart Rate',
+  bloodGlucose: 'Blood Glucose',
+  uricAcid: 'Uric Acid',
+  totalCholesterol: 'Total Cholesterol',
+  ldl: 'LDL',
+  hdl: 'HDL',
+  triglycerides: 'Triglycerides'
+};
+
 export interface PersonalInfo {
   age: number | null;
   sex: SexSelection | null;
@@ -136,6 +158,15 @@ export interface PlanningState {
   reminderMinutesBefore: number;
 }
 
+export interface ExerciseGuideState {
+  visualMode: ExerciseVisualMode;
+}
+
+export interface CalendarState {
+  reminderMinutesBefore: number;
+  previewOpen: boolean;
+}
+
 export interface ConditionalQuestionItem {
   id:
     | 'pregnancy'
@@ -179,6 +210,7 @@ export interface AshaAppState {
     language: Language;
     currentStep: number;
     showMasterPrompt: boolean;
+    showCalendarPreview: boolean;
   };
   personal: PersonalInfo;
   health: HealthSnapshot;
@@ -189,6 +221,8 @@ export interface AshaAppState {
   equipment: EquipmentState;
   nutrition: NutritionState;
   planning: PlanningState;
+  exerciseGuide: ExerciseGuideState;
+  calendar: CalendarState;
   personalization: PersonalizationState;
   assumptions: string[];
   confirmation: {

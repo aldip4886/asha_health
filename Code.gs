@@ -18,7 +18,7 @@ function sendMessageToGemini(requestPayload) {
     };
   }
 
-  var userEmail = Session.getActiveUser().getEmail() || 'authenticated-user';
+  var userEmail = Session.getActiveUser().getEmail() || 'anonymous@google-account';
   var dateKey = Utilities.formatDate(new Date(), 'Asia/Jakarta', 'yyyy-MM-dd');
   var quotaKey = 'ASHA_QUOTA_' + dateKey + '_' + userEmail;
   var currentCount = parseInt(scriptProps.getProperty(quotaKey) || '0', 10) || 0;
@@ -28,7 +28,10 @@ function sendMessageToGemini(requestPayload) {
     return {
       ok: false,
       remainingQuota: 0,
-      error: 'Batas harian 30 pesan Personal Trainer Chat telah tercapai untuk akun Anda hari ini.'
+      error:
+        'Batas harian ' +
+        DAILY_LIMIT +
+        ' pesan Personal Trainer Chat telah tercapai untuk akun Anda hari ini. Silakan lanjutkan besok atau ekspor Context Snapshot Anda.'
     };
   }
 
@@ -49,7 +52,11 @@ function sendMessageToGemini(requestPayload) {
   } else if (contents.length === 0) {
     contents.push({
       role: 'user',
-      parts: [{ text: 'Silakan susun rencana kesehatan v1.0 saya secara lengkap dalam Bahasa Indonesia.' }]
+      parts: [
+        {
+          text: 'Silakan susun rencana kesehatan v1.0 saya secara lengkap dalam Bahasa Indonesia berdasarkan konteks pada sistem.'
+        }
+      ]
     });
   }
 
@@ -86,12 +93,18 @@ function sendMessageToGemini(requestPayload) {
       parsed.candidates[0].content.parts &&
       parsed.candidates[0].content.parts[0] &&
       parsed.candidates[0].content.parts[0].text) ||
-    '';
+    'Maaf, respons rencana tidak dapat diproses saat ini.';
+
+  var isMajorRevision =
+    Boolean(
+      requestPayload.userMessage &&
+        /ganti seluruh rencana|rombak total/i.test(requestPayload.userMessage)
+    ) || /\[MAJOR_REVISION\]/i.test(text);
 
   return {
     ok: true,
     text: text,
     remainingQuota: DAILY_LIMIT - nextCount,
-    isMajorRevision: /\[MAJOR_REVISION\]/i.test(text)
+    isMajorRevision: isMajorRevision
   };
 }

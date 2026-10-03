@@ -1,6 +1,8 @@
 import {
   AshaAppState,
   AspirationType,
+  BIOMARKER_KEYS,
+  BIOMARKER_LABELS,
   BiomarkerKey,
   ConditionalQuestionItem,
   DietType,
@@ -17,6 +19,7 @@ import {
   PersonalInfo,
   PlanningState,
   PlanTypeOption,
+  RunningDistance,
   ScheduleState,
   SexSelection
 } from './types';
@@ -29,28 +32,6 @@ import {
   buildDietCalendarIcs,
   buildTrainingCalendarIcs
 } from './exporters';
-
-const BIOMARKER_KEYS: BiomarkerKey[] = [
-  'bloodPressure',
-  'restingHeartRate',
-  'bloodGlucose',
-  'uricAcid',
-  'totalCholesterol',
-  'ldl',
-  'hdl',
-  'triglycerides'
-];
-
-const BIOMARKER_LABELS: Record<BiomarkerKey, string> = {
-  bloodPressure: 'Blood Pressure',
-  restingHeartRate: 'Resting Heart Rate',
-  bloodGlucose: 'Blood Glucose',
-  uricAcid: 'Uric Acid',
-  totalCholesterol: 'Total Cholesterol',
-  ldl: 'LDL',
-  hdl: 'HDL',
-  triglycerides: 'Triglycerides'
-};
 
 const LOADING_MESSAGE_ID = 'ASHA sedang menyiapkan rencanamu...';
 const TOTAL_WIZARD_STEPS = 7;
@@ -76,7 +57,8 @@ export function createInitialState(): AshaAppState {
     ui: {
       language: 'id',
       currentStep: 0,
-      showMasterPrompt: false
+      showMasterPrompt: false,
+      showCalendarPreview: false
     },
     personal: {
       age: null,
@@ -138,6 +120,13 @@ export function createInitialState(): AshaAppState {
       integrationMode: 'optimize_together',
       exerciseVisualMode: 'external_reference',
       reminderMinutesBefore: 30
+    },
+    exerciseGuide: {
+      visualMode: 'external_reference'
+    },
+    calendar: {
+      reminderMinutesBefore: 30,
+      previewOpen: false
     },
     personalization: {
       visualPersona: 'neutral',
@@ -299,7 +288,13 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
               ? 'Nilai yang dikosongkan akan ditandai "Not provided" dan tidak pernah dikarang.'
               : 'Omitted values are marked "Not provided" and never fabricated.'
           }</p>
-          <div class="asha-grid">${inputs}</div>
+          <div class="asha-grid">
+            ${inputs}
+            <label>
+              <span>${isId ? 'Indikator Lainnya (Opsional)' : 'Other Indicators (Optional)'}</span>
+              <input type="text" data-field="health-other" value="${state.health.other ?? ''}" />
+            </label>
+          </div>
         </section>
       `;
     }
@@ -311,7 +306,7 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
         return `
           <div class="asha-ocr-row">
             <strong>${BIOMARKER_LABELS[key]}</strong>
-            <span>${item.normalizedValue ?? 'Unable to determine'}</span>
+            <input type="text" data-edit-ocr="${key}" value="${item.normalizedValue ?? ''}" placeholder="Unable to determine" />
             <span class="asha-badge">${item.confidence}</span>
           </div>
         `;
@@ -357,6 +352,24 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
               <input type="text" data-field="target" value="${state.goal.target ?? ''}" />
             </label>
             <label>
+              <span>${isId ? 'Jarak Lari (Jika Lari)' : 'Running Distance (If Running)'}</span>
+              <select data-field="runningDistance">
+                <option value="">--</option>
+                <option value="5K" ${state.goal.runningDistance === '5K' ? 'selected' : ''}>5K</option>
+                <option value="10K" ${state.goal.runningDistance === '10K' ? 'selected' : ''}>10K</option>
+                <option value="half_marathon" ${state.goal.runningDistance === 'half_marathon' ? 'selected' : ''}>Half Marathon</option>
+                <option value="full_marathon" ${state.goal.runningDistance === 'full_marathon' ? 'selected' : ''}>Full Marathon</option>
+              </select>
+            </label>
+            <label>
+              <span>${isId ? 'Performa Saat Ini (Opsional)' : 'Current Performance (Optional)'}</span>
+              <input type="text" data-field="currentPerformance" value="${state.goal.currentPerformance ?? ''}" />
+            </label>
+            <label>
+              <span>${isId ? 'Indikator Kesehatan Target (Opsional)' : 'Target Biomarker (Optional)'}</span>
+              <input type="text" data-field="targetBiomarker" value="${state.goal.targetBiomarker ?? ''}" />
+            </label>
+            <label>
               <span>${isId ? 'Durasi Rencana (Minggu)' : 'Timeframe (Weeks)'}</span>
               <input type="number" data-field="durationWeeks" value="${state.timeframe.durationWeeks ?? ''}" placeholder="8" />
             </label>
@@ -366,10 +379,32 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
     }
 
     if (step === 4) {
+      const equipItems: EquipmentItem[] = ['bodyweight', 'dumbbells', 'barbell', 'fitness_ball'];
+      const equipCheckboxes = equipItems
+        .map(
+          (item) => `
+            <label class="asha-inline-check">
+              <input type="checkbox" data-equipment="${item}" ${
+                state.equipment.selected.includes(item) ? 'checked' : ''
+              } />
+              <span>${item}</span>
+            </label>
+          `
+        )
+        .join('');
+
       return `
         <section class="asha-card">
           <h2>${isId ? '5. Jadwal, Peralatan & Diet' : '5. Schedule, Equipment & Diet'}</h2>
           <div class="asha-grid">
+            <label>
+              <span>${isId ? 'Hari Latihan (pisahkan koma)' : 'Training Days (comma-separated)'}</span>
+              <input type="text" data-field="trainingDays" value="${state.schedule.trainingDays.join(', ')}" placeholder="Monday, Wednesday, Friday" />
+            </label>
+            <label>
+              <span>${isId ? 'Hari Istirahat (pisahkan koma)' : 'Rest Days (comma-separated)'}</span>
+              <input type="text" data-field="restDays" value="${state.schedule.restDays.join(', ')}" placeholder="Tuesday, Thursday, Saturday, Sunday" />
+            </label>
             <label>
               <span>${isId ? 'Durasi Sesi (menit)' : 'Session Duration (minutes)'}</span>
               <input type="number" data-field="sessionDurationMinutes" value="${
@@ -394,7 +429,26 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
                 <option value="intermittent_fasting" ${state.nutrition.diet === 'intermittent_fasting' ? 'selected' : ''}>Intermittent Fasting</option>
               </select>
             </label>
+            <label>
+              <span>${isId ? 'Protokol IF (Jika IF)' : 'IF Protocol (If IF)'}</span>
+              <select data-field="fastingProtocol">
+                <option value="">--</option>
+                <option value="12:12" ${state.nutrition.fastingProtocol === '12:12' ? 'selected' : ''}>12:12</option>
+                <option value="14:10" ${state.nutrition.fastingProtocol === '14:10' ? 'selected' : ''}>14:10</option>
+                <option value="16:8" ${state.nutrition.fastingProtocol === '16:8' ? 'selected' : ''}>16:8</option>
+                <option value="18:6" ${state.nutrition.fastingProtocol === '18:6' ? 'selected' : ''}>18:6</option>
+                <option value="custom" ${state.nutrition.fastingProtocol === 'custom' ? 'selected' : ''}>Custom</option>
+              </select>
+            </label>
+            <label>
+              <span>${isId ? 'Jendela Makan (Jika IF)' : 'Eating Window (If IF)'}</span>
+              <input type="text" data-field="eatingWindow" value="${state.nutrition.eatingWindow ?? ''}" placeholder="12:00 - 20:00" />
+            </label>
           </div>
+          <fieldset class="asha-equipment-group">
+            <legend>${isId ? 'Peralatan yang Tersedia' : 'Available Equipment'}</legend>
+            ${equipCheckboxes}
+          </fieldset>
         </section>
       `;
     }
@@ -423,8 +477,8 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
         <section class="asha-card">
           <h2>${
             isId
-              ? '6. Tipe Rencana & Konteks Fisiologis Kondisional'
-              : '6. Plan Type & Conditional Physiological Context'
+              ? '6. Tipe Rencana, Referensi Visual & Konteks Fisiologis'
+              : '6. Plan Type, Visual Preferences & Conditional Context'
           }</h2>
           <div class="asha-grid">
             <label>
@@ -452,6 +506,27 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
                 }>Independent</option>
               </select>
             </label>
+            <label>
+              <span>${isId ? 'Mode Referensi Visual Latihan' : 'Exercise Visual Mode'}</span>
+              <select data-field="exerciseVisualMode">
+                <option value="external_reference" ${
+                  state.planning.exerciseVisualMode === 'external_reference' ? 'selected' : ''
+                }>External Reference (DAREBEE link)</option>
+                <option value="ai_illustration" ${
+                  state.planning.exerciseVisualMode === 'ai_illustration' ? 'selected' : ''
+                }>AI-Generated Illustration</option>
+                <option value="video_reference" ${
+                  state.planning.exerciseVisualMode === 'video_reference' ? 'selected' : ''
+                }>Video Reference</option>
+                <option value="text_only" ${
+                  state.planning.exerciseVisualMode === 'text_only' ? 'selected' : ''
+                }>Text-Only Fallback</option>
+              </select>
+            </label>
+            <label>
+              <span>${isId ? 'Pengingat Kalender (menit sebelum)' : 'Calendar Reminder (minutes before)'}</span>
+              <input type="number" data-field="reminderMinutesBefore" value="${state.planning.reminderMinutesBefore}" />
+            </label>
           </div>
           <div class="asha-conditionals">
             <h3>${isId ? 'Konteks Fisiologis (Opsional)' : 'Conditional Physiological Context (Optional)'}</h3>
@@ -464,9 +539,37 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
     // Step 6: Review & Confirmation Screen
     applyAssumptionsAndPersonalization(state);
     const personaInfo = resolveVisualPersona(state.personal.sex);
+    const healthSummary = BIOMARKER_KEYS.map(
+      (k) => `${BIOMARKER_LABELS[k]}: ${state.health[k].value ?? 'Not provided'}`
+    ).join(' | ');
+
     const promptPreview =
       state.confirmation.confirmed && state.ui.showMasterPrompt
-        ? `<pre class="asha-prompt-box">${generateEnglishMasterPrompt(state)}</pre>`
+        ? `
+          <div class="asha-prompt-container">
+            <div class="asha-prompt-toolbar">
+              <button type="button" data-action="copy-prompt">${
+                isId ? 'Salin Master Prompt' : 'Copy Master Prompt'
+              }</button>
+              <button type="button" data-action="open-gemini">${
+                isId ? 'Buka Gemini di Tab Baru' : 'Open Gemini in New Tab'
+              }</button>
+            </div>
+            <pre class="asha-prompt-box">${generateEnglishMasterPrompt(state)}</pre>
+          </div>
+        `
+        : '';
+
+    const calendarPreview =
+      state.confirmation.confirmed && state.ui.showCalendarPreview
+        ? `
+          <div class="asha-calendar-preview">
+            <h4>My Training Plan (.ics)</h4>
+            <pre class="asha-prompt-box">${buildTrainingCalendarIcs(state)}</pre>
+            <h4>My Diet Plan (.ics)</h4>
+            <pre class="asha-prompt-box">${buildDietCalendarIcs(state)}</pre>
+          </div>
+        `
         : '';
 
     return `
@@ -474,18 +577,40 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
         <h2>${isId ? '7. Tinjauan & Konfirmasi (Mandatory Review)' : '7. Mandatory Review & Confirmation'}</h2>
         <div class="asha-review-summary">
           <p><strong>Visual Persona:</strong> ${isId ? personaInfo.labelId : personaInfo.labelEn}</p>
-          <p><strong>Planning Context:</strong> Sex will be used as contextual information. No sex-based training stereotype will be applied.</p>
-          <p><strong>Age / Sex:</strong> ${state.personal.age ?? 'Not provided'} / ${
-            state.personal.sex ?? 'Not provided'
+          <p><strong>${isId ? 'Konteks Perencanaan' : 'Planning Context'}:</strong> ${
+            isId
+              ? 'Jenis kelamin digunakan sebagai variabel kontekstual. Tidak ada stereotip latihan berbasis jenis kelamin.'
+              : 'Sex will be used as contextual information. No sex-based training stereotype will be applied.'
           }</p>
-          <p><strong>Aspiration / Target:</strong> ${state.goal.aspiration ?? 'Not provided'} — ${
-            state.goal.target ?? 'Not provided'
+          <p><strong>${isId ? 'Informasi Pribadi' : 'Personal Info'}:</strong> ${
+            state.personal.age ?? 'Not provided'
+          } yrs | ${state.personal.sex ?? 'Not provided'} | ${
+            state.personal.height !== null ? `${state.personal.height} cm` : 'Not provided'
+          } | ${state.personal.weight !== null ? `${state.personal.weight} kg` : 'Not provided'} | ${
+            state.personal.ethnicity ?? 'Not provided'
           }</p>
+          <p><strong>Health Snapshot:</strong> ${healthSummary}</p>
+          <p><strong>Aspiration / Target / Timeframe:</strong> ${
+            state.goal.aspiration ?? 'Not provided'
+          } — ${state.goal.target ?? 'Not provided'} (${
+            state.timeframe.durationWeeks ?? 8
+          } weeks)</p>
+          <p><strong>Schedule:</strong> ${state.schedule.trainingDays.join(', ')} (${
+            state.schedule.sessionDurationMinutes ?? 45
+          } min at ${state.schedule.preferredTime ?? '07:00'}) | Rest: ${state.schedule.restDays.join(', ')}</p>
           <p><strong>Equipment:</strong> ${state.equipment.selected.join(', ')} (${
             state.equipment.fieldState
           })</p>
+          <p><strong>Diet & Plan Type:</strong> ${state.nutrition.diet ?? 'Not provided'} | ${
+            state.planning.planType ?? 'training_and_meal'
+          } (${state.planning.integrationMode ?? 'optimize_together'})</p>
           <p><strong>AI Assumptions:</strong> ${
             state.assumptions.length > 0 ? state.assumptions.join(' | ') : 'None'
+          }</p>
+          <p><strong>${isId ? 'Pertimbangan Keamanan' : 'Safety Considerations'}:</strong> ${
+            isId
+              ? 'ASHA bersifat edukatif dan bukan diagnosis atau resep medis.'
+              : 'ASHA provides educational health planning and is not a medical diagnosis or prescription.'
           }</p>
         </div>
 
@@ -493,7 +618,11 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
           <input type="checkbox" data-action="toggle-confirm" ${
             state.confirmation.confirmed ? 'checked' : ''
           } />
-          <span>Saya telah memeriksa informasi dan asumsi yang akan digunakan untuk membuat prompt.</span>
+          <span>${
+            isId
+              ? 'Saya telah memeriksa informasi dan asumsi yang akan digunakan untuk membuat prompt.'
+              : 'I have reviewed the information and assumptions (Saya telah memeriksa informasi dan asumsi yang akan digunakan untuk membuat prompt).'
+          }</span>
         </label>
 
         <div class="asha-review-actions">
@@ -507,6 +636,12 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
             !state.confirmation.confirmed ? 'disabled' : ''
           }>
             ${isId ? 'Tampilkan Master Prompt (Power User)' : 'Show Master Prompt'}
+          </button>
+
+          <button type="button" data-action="toggle-ics-preview" ${
+            !state.confirmation.confirmed ? 'disabled' : ''
+          }>
+            ${isId ? 'Pratinjau Kalender (.ics)' : 'Preview Calendars (.ics)'}
           </button>
 
           <button type="button" data-action="download-training-ics" ${
@@ -529,6 +664,7 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
         </div>
 
         ${promptPreview}
+        ${calendarPreview}
       </section>
     `;
   }
@@ -540,7 +676,13 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
       .map(
         (t) => `
           <div class="asha-chat-turn asha-chat-${t.role}">
-            <strong>${t.role === 'assistant' ? `ASHA (${t.planVersion ?? state.chat.currentVersion})` : 'Anda'}:</strong>
+            <strong>${
+              t.role === 'assistant'
+                ? `ASHA (${t.planVersion ?? state.chat.currentVersion})`
+                : isId
+                ? 'Anda'
+                : 'You'
+            }:</strong>
             <div>${t.content}</div>
           </div>
         `
@@ -685,6 +827,18 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
       });
     });
 
+    root.querySelector('[data-field="health-other"]')?.addEventListener('change', (e) => {
+      updateHealthSnapshot({ other: (e.target as HTMLInputElement).value });
+    });
+
+    root.querySelectorAll('[data-edit-ocr]').forEach((input) => {
+      input.addEventListener('change', (e) => {
+        const target = e.target as HTMLInputElement;
+        const key = target.getAttribute('data-edit-ocr') as BiomarkerKey;
+        editExtractedBiomarker(key, target.value);
+      });
+    });
+
     root.querySelector('[data-action="ocr-file"]')?.addEventListener('change', (e) => {
       const files = (e.target as HTMLInputElement).files;
       if (files && files[0]) {
@@ -706,9 +860,40 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
       updateGoal({ target: val || null });
     });
 
+    root.querySelector('[data-field="runningDistance"]')?.addEventListener('change', (e) => {
+      const val = (e.target as HTMLSelectElement).value as RunningDistance | '';
+      updateGoal({ runningDistance: val || null });
+    });
+
+    root.querySelector('[data-field="currentPerformance"]')?.addEventListener('change', (e) => {
+      const val = (e.target as HTMLInputElement).value.trim();
+      updateGoal({ currentPerformance: val || null });
+    });
+
+    root.querySelector('[data-field="targetBiomarker"]')?.addEventListener('change', (e) => {
+      const val = (e.target as HTMLInputElement).value.trim() as BiomarkerKey | 'other' | '';
+      updateGoal({ targetBiomarker: val || null });
+    });
+
     root.querySelector('[data-field="durationWeeks"]')?.addEventListener('change', (e) => {
       const val = parseInt((e.target as HTMLInputElement).value, 10);
       updateTimeframe(Number.isNaN(val) ? null : val);
+    });
+
+    root.querySelector('[data-field="trainingDays"]')?.addEventListener('change', (e) => {
+      const days = (e.target as HTMLInputElement).value
+        .split(',')
+        .map((d) => d.trim())
+        .filter(Boolean);
+      updateSchedule({ trainingDays: days });
+    });
+
+    root.querySelector('[data-field="restDays"]')?.addEventListener('change', (e) => {
+      const days = (e.target as HTMLInputElement).value
+        .split(',')
+        .map((d) => d.trim())
+        .filter(Boolean);
+      updateSchedule({ restDays: days });
     });
 
     root.querySelector('[data-field="sessionDurationMinutes"]')?.addEventListener('change', (e) => {
@@ -726,6 +911,29 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
       updateNutrition({ diet: val || null });
     });
 
+    root.querySelector('[data-field="fastingProtocol"]')?.addEventListener('change', (e) => {
+      const val = (e.target as HTMLSelectElement).value as FastingProtocol | '';
+      updateNutrition({ fastingProtocol: val || null });
+    });
+
+    root.querySelector('[data-field="eatingWindow"]')?.addEventListener('change', (e) => {
+      const val = (e.target as HTMLInputElement).value.trim();
+      updateNutrition({ eatingWindow: val || null });
+    });
+
+    root.querySelectorAll('[data-equipment]').forEach((checkbox) => {
+      checkbox.addEventListener('change', () => {
+        const checked: EquipmentItem[] = [];
+        root.querySelectorAll('[data-equipment]').forEach((el) => {
+          const input = el as HTMLInputElement;
+          if (input.checked) {
+            checked.push(input.getAttribute('data-equipment') as EquipmentItem);
+          }
+        });
+        updateEquipment(checked);
+      });
+    });
+
     root.querySelector('[data-field="planType"]')?.addEventListener('change', (e) => {
       const val = (e.target as HTMLSelectElement).value as PlanTypeOption;
       updatePlanning({ planType: val });
@@ -734,6 +942,18 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
     root.querySelector('[data-field="integrationMode"]')?.addEventListener('change', (e) => {
       const val = (e.target as HTMLSelectElement).value as IntegrationModeOption;
       updatePlanning({ integrationMode: val });
+    });
+
+    root.querySelector('[data-field="exerciseVisualMode"]')?.addEventListener('change', (e) => {
+      const val = (e.target as HTMLSelectElement).value as ExerciseVisualMode;
+      updatePlanning({ exerciseVisualMode: val });
+    });
+
+    root.querySelector('[data-field="reminderMinutesBefore"]')?.addEventListener('change', (e) => {
+      const val = parseInt((e.target as HTMLInputElement).value, 10);
+      if (!Number.isNaN(val)) {
+        updatePlanning({ reminderMinutesBefore: val });
+      }
     });
 
     root.querySelectorAll('[data-conditional]').forEach((input) => {
@@ -751,6 +971,18 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
     root
       .querySelector('[data-action="toggle-prompt"]')
       ?.addEventListener('click', () => toggleMasterPromptDisclosure());
+
+    root
+      .querySelector('[data-action="toggle-ics-preview"]')
+      ?.addEventListener('click', () => toggleCalendarPreview());
+
+    root.querySelector('[data-action="copy-prompt"]')?.addEventListener('click', () => {
+      void copyMasterPromptToClipboard();
+    });
+
+    root.querySelector('[data-action="open-gemini"]')?.addEventListener('click', () => {
+      openGeminiInNewTab();
+    });
 
     root.querySelector('[data-action="start-chat"]')?.addEventListener('click', () => {
       void startPersonalTrainerChat();
@@ -819,6 +1051,26 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
   function toggleMasterPromptDisclosure() {
     state.ui.showMasterPrompt = !state.ui.showMasterPrompt;
     render();
+  }
+
+  function toggleCalendarPreview() {
+    state.ui.showCalendarPreview = !state.ui.showCalendarPreview;
+    state.calendar.previewOpen = state.ui.showCalendarPreview;
+    render();
+  }
+
+  async function copyMasterPromptToClipboard(): Promise<string> {
+    const prompt = getMasterPrompt();
+    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(prompt);
+    }
+    return prompt;
+  }
+
+  function openGeminiInNewTab() {
+    if (typeof window !== 'undefined' && window.open) {
+      window.open('https://gemini.google.com/', '_blank');
+    }
   }
 
   function updatePersonal(patch: Partial<PersonalInfo>) {
@@ -959,6 +1211,12 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
   function updatePlanning(patch: Partial<PlanningState>) {
     markDirty();
     state.planning = { ...state.planning, ...patch };
+    if (patch.exerciseVisualMode) {
+      state.exerciseGuide.visualMode = patch.exerciseVisualMode;
+    }
+    if (patch.reminderMinutesBefore !== undefined) {
+      state.calendar.reminderMinutesBefore = patch.reminderMinutesBefore;
+    }
     render();
   }
 
@@ -1093,9 +1351,6 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
     render();
   }
 
-  // Silence unused type warnings if any
-  void (null as unknown as FastingProtocol | ExerciseVisualMode);
-
   applyPersonaBackgroundToDom(state.personal.sex);
   render();
 
@@ -1106,6 +1361,9 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
     prevStep,
     goToStep,
     toggleMasterPromptDisclosure,
+    toggleCalendarPreview,
+    copyMasterPromptToClipboard,
+    openGeminiInNewTab,
     updatePersonal,
     updateHealthSnapshot,
     uploadHealthReport,

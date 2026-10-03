@@ -1,7 +1,8 @@
 import {
   AshaAppState,
   AspirationType,
-  BiomarkerKey,
+  BIOMARKER_KEYS,
+  BIOMARKER_LABELS,
   DietType,
   ExerciseVisualMode,
   PlanTypeOption
@@ -15,28 +16,6 @@ const ASPIRATION_LABELS: Record<AspirationType, string> = {
   improve_overall_health: 'Improve overall health',
   running_performance: 'Running performance',
   improve_health_indicator: 'Improve health indicator'
-};
-
-const BIOMARKER_KEYS: BiomarkerKey[] = [
-  'bloodPressure',
-  'restingHeartRate',
-  'bloodGlucose',
-  'uricAcid',
-  'totalCholesterol',
-  'ldl',
-  'hdl',
-  'triglycerides'
-];
-
-const BIOMARKER_LABELS: Record<BiomarkerKey, string> = {
-  bloodPressure: 'Blood Pressure',
-  restingHeartRate: 'Resting Heart Rate',
-  bloodGlucose: 'Blood Glucose',
-  uricAcid: 'Uric Acid',
-  totalCholesterol: 'Total Cholesterol',
-  ldl: 'LDL',
-  hdl: 'HDL',
-  triglycerides: 'Triglycerides'
 };
 
 const DIET_LABELS: Record<DietType, string> = {
