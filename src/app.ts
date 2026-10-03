@@ -1449,7 +1449,7 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
     `;
   }
 
-  function renderArrowStepTabs(isId: boolean): string {
+  function renderTimelineDotStepTabs(isId: boolean): string {
     const stepDescriptors = isId
       ? [
           { title: 'Langkah 1', subtitle: 'Profil Diri' },
@@ -1479,9 +1479,13 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
             ? 'done'
             : '';
         return `
-          <li class="nav-item ${stateClass}">
-            <a href="#step-${idx + 1}" class="nav-link" data-step-tab="${idx}">
-              ${item.title}<br /><small>${item.subtitle}</small>
+          <li class="nav-item asha-timeline-step ${stateClass}">
+            <a href="#step-${idx + 1}" class="nav-link asha-timeline-link" data-step-tab="${idx}">
+              <span class="asha-timeline-dot" data-role="timeline-dot" aria-hidden="true"></span>
+              <span class="asha-timeline-label">
+                <span class="asha-timeline-title">${item.title}</span>
+                <small class="asha-timeline-subtitle">${item.subtitle}</small>
+              </span>
             </a>
           </li>
         `;
@@ -1489,7 +1493,7 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
       .join('');
 
     return `
-      <ul class="nav nav-tabs step-anchor" data-role="wizard-arrow-tabs">
+      <ul class="nav nav-tabs step-anchor asha-timeline-steps" data-role="wizard-timeline-tabs">
         ${itemsHtml}
       </ul>
     `;
@@ -1548,8 +1552,8 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
                 </span>
               </div>
               <div class="modal-body asha-wizard-modal-body">
-                <div id="smartwizard" class="sw-main sw-theme-arrows" data-role="smartwizard">
-                  ${renderArrowStepTabs(isId)}
+                <div id="smartwizard" class="sw-main sw-theme-dots asha-timeline-wizard" data-role="smartwizard">
+                  ${renderTimelineDotStepTabs(isId)}
                   <div class="sw-container tab-content asha-wizard-step-transition">
                     <div id="step-${state.ui.currentStep + 1}" class="tab-pane step-content active" style="display: block;">
                       ${renderStepContent(isId)}
