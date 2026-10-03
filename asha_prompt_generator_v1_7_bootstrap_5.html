@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASHA - Personal Health Companion</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Google Fonts: Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bs-body-font-family: 'Poppins', sans-serif;
+            --orange-primary: #f97316;
+            --orange-hover: #ea580c;
+            --orange-light: #ffedd5;
+            --orange-bg: #fff7ed;
+            --blue-asha: #0B4F8C; /* Warna biru sesuai logo */
+        }
+        
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: var(--bs-body-font-family);
+            background-color: #f8f9fa;
+        }
+
+        /* Latar Belakang & Persona Dinamis */
+        .bg-layer {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url('Modern Activewear Duo in White Studio_2.png'); /* Default */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            z-index: 0;
+            transition: opacity 0.5s ease-in-out, background-image 0.5s ease-in-out;
+        }
+        
+        /* Gradient mask agar konten terbaca tapi persona di kanan terlihat */
+        .bg-layer::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(to right, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.85) 50%, rgba(255,255,255,0.1) 100%);
+            z-index: 1;
+        }
+
+        @media (max-width: 768px) {
+            .bg-layer {
+                background-position: 80% 20%;
+            }
+            .bg-layer::before {
+                background: linear-gradient(to bottom, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.90) 60%, rgba(255,255,255,0.3) 100%);
+            }
+        }
+
+        /* Konten Halaman Utama */
+        .main-wrapper {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Warna Kustom (Blue Asha) */
+        .text-asha-blue { color: var(--blue-asha); }
+        .bg-asha-blue { background-color: var(--blue-asha); }
+        .border-asha-blue { border-color: var(--blue-asha); }
+
+        .btn-asha {
+            background-color: var(--blue-asha);
+            color: white;
+            border: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(11, 79, 140, 0.2);
+        }
+        .btn-asha:hover {
+            background-color: #083c6b;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(11, 79, 140, 0.3);
+        }
+
+        /* Kustomisasi Form Bootstrap */
+        .form-control, .form-select {
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            border-color: #dee2e6;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--blue-asha);
+            box-shadow: 0 0 0 0.25rem rgba(11, 79, 140, 0.25);
+        }
+        
+        /* Animasi Transisi Step */
+        .step-container {
+            display: none;
+            animation: fadeInStep 0.4s ease-out forwards;
+        }
+        .step-container.active {
+            display: block;
+        }
+        @keyframes fadeInStep {
+            from { opacity: 0; transform: translateX(15px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Kustomisasi Progress Bar */
+        .wizard-progress-container {
+            background-color: #e9ecef;
+            border-radius: 10px;
+            height: 8px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        .wizard-progress-bar {
+            background-color: var(--blue-asha);
+            height: 100%;
+            transition: width 0.4s ease;
+        }
+
+        /* Checkbox & Toggle Custom */
+        .btn-check-custom + .btn {
+            border-radius: 20px;
+            border-color: #dee2e6;
+            color: #495057;
+            background-color: #f8f9fa;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+        .btn-check-custom:checked + .btn {
+            background-color: var(--blue-asha);
+            color: white;
+            border-color: var(--blue-asha);
+            box-shadow: 0 2px 4px rgba(11, 79, 140, 0.3);
+        }
+        .btn-check-custom + .btn:hover {
+            background-color: #e2e6ea;
+            transform: scale(1.02);
+        }
+        .btn-check-custom:checked + .btn:hover {
+            background-color: #083c6b;
+        }
+        
+        .session-divider {
+            border: 0;
+            height: 1px;
+            background-image: linear-gradient(to right, transparent, rgba(0,0,0,0.1), transparent);
+            margin: 2rem 0;
+        }
+
+        /* Kustomisasi Modal Sukses */
+        .icon-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+        }
+        
+        /* Hover pada Kartu Chatbot */
+        .ai-card {
+            border: 1px solid #dee2e6;
+            border-radius: 12px;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: #212529;
+            background-color: white;
+        }
+        .ai-card:hover {
+            border-color: var(--blue-asha);
+            background-color: #f0f7ff;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(11, 79, 140, 0.15);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Latar Belakang Gambar -->
+    <div class="bg-layer" id="app-background"></div>
+
+    <div class="main-wrapper">
+        <!-- Header -->
+        <header class="bg-white bg-opacity-75 backdrop-blur shadow-sm py-2 sticky-top border-bottom border-light">
+            <div class="container d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <img src="logo.png" alt="ASHA Logo" height="40" class="me-2" onerror="this.src='https://placehold.co/100x100/0B4F8C/ffffff?text=A'">
+                    <div>
+                        <h1 class="h5 mb-0 fw-bold text-asha-blue lh-1">ASHA</h1>
+                        <small class="text-muted" style="font-size: 0.7rem;">Personal Health Companion</small>
+                    </div>
+                    <span class="badge bg-success bg-opacity-10 text-success border border-success ms-3 d-none d-sm-inline-block">
+                        <i class="bi bi-shield-check"></i> 100% Memori Runtime
+                    </span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content (Hero Section) -->
+        <main class="flex-grow-1 d-flex flex-column justify-content-center align-items-center text-center px-3">
+            <div class="bg-white bg-opacity-90 p-5 rounded-4 shadow-lg border border-light" style="max-width: 600px; backdrop-filter: blur(10px);">
+                <img src="logo.png" alt="ASHA Logo" height="80" class="mb-4" onerror="this.style.display='none'">
+                <h2 class="fw-bold text-dark mb-3">Selamat Datang di ASHA</h2>
+                <p class="text-muted mb-4">
+                    ASHA mengubah informasi kesehatan, aspirasi, jadwal, dan preferensi Anda menjadi <b>Master Prompt</b> yang komprehensif. Mulai bangun rencana kesehatan Anda sekarang.
+                </p>
+                <button type="button" class="btn btn-asha btn-lg px-5 py-3 rounded-pill fw-semibold" onclick="openWizard()">
+                    Mulai Buat Rencana
+                </button>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-white bg-opacity-75 backdrop-blur border-top py-3 mt-auto text-center">
+            <div class="container">
+                <p class="text-muted mb-0 mx-auto" style="font-size: 0.75rem; max-width: 800px;">
+                    <strong>Disclaimer Privasi & Medis:</strong> ASHA adalah alat bantu penulisan prompt. Kami tidak menyimpan data kesehatan Anda di server. Informasi yang dihasilkan oleh AI bukan merupakan diagnosis medis. Selalu konsultasikan dengan profesional kesehatan sebelum memulai program baru.
+                </p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modal Bootstrap untuk Form Wizard -->
+    <div class="modal fade" id="ashaWizardModal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="ashaWizardModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                
+                <!-- Modal Header dengan Step Indicator -->
+                <div class="modal-header flex-column align-items-stretch bg-light border-bottom-0 rounded-top-4 pt-4 pb-3 px-4 px-md-5">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex align-items-center">
+                            <img src="logo.png" alt="Logo" height="30" class="me-2" onerror="this.style.display='none'">
+                            <h5 class="modal-title fw-bold text-asha-blue m-0" id="ashaWizardModalLabel">Perencanaan Kesehatan</h5>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    
+                    <!-- Progress Bar & Text -->
+                    <div class="d-flex justify-content-between text-muted small fw-medium">
+                        <span id="stepLabel">Langkah 1 dari 7: Profil Pribadi</span>
+                        <span id="stepPercentage" class="text-asha-blue fw-bold">14%</span>
+                    </div>
+                    <div class="wizard-progress-container">
+                        <div class="wizard-progress-bar" id="wizardProgress" style="width: 14%;"></div>
+                    </div>
+                </div>
+
+                <!-- Modal Body (Form Content) -->
+                <div class="modal-body px-4 px-md-5 py-4" id="wizardModalBody">
+                    <form id="asha-form" onsubmit="return false;">
+                        
+                        <div id="step-1" class="step-container active">
+                            <h4 class="fw-bold mb-4">Profil Pribadi</h4>
+                            
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold">What should I call you? <span class="text-muted fw-normal">(Nama Panggilan)</span></label>
+                                <input type="text" id="nickname" class="form-control" placeholder="Contoh: Budi, Sarah...">
+                            </div>
+
+                            <div class="row g-4 mb-4">
+                                <div class="col-sm-6">
+                                    <label class="form-label fw-semibold">Jenis Kelamin</label>
+                                    <select id="sex" class="form-select" onchange="updatePersona()">
+                                        <option value="unspecified" selected>Prefer tidak menyebutkan</option>
+                                        <option value="male">Laki-laki</option>
+                                        <option value="female">Perempuan</option>
+                                    </select>
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="form-label fw-semibold">Etnis <span class="text-muted fw-normal">(Opsional)</span></label>
+                                    <select id="ethnicity" class="form-select">
+                                        <option value="">Pilih Etnis</option>
+                                        <option value="Asian">Asian</option>
+                                        <option value="Kaukasian">Kaukasian</option>
+                                        <option value="American">American</option>
+                                        <option value="Latin">Latin</option>
+                                        <option value="Indian">Indian</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row g-4">
+                                <div class="col-sm-4">
+                                    <label class="form-label fw-semibold">Usia (Tahun)</label>
+                                    <input type="number" id="age" class="form-control" placeholder="Contoh: 30">
+                                </div>
+                                <div class="col-sm-4">
+                                    <label class="form-label fw-semibold">Tinggi (cm)</label>
+                                    <input type="number" id="height" class="form-control" placeholder="170">
+                                </div>
+                                <div class="col-sm-4">
+                                    <label class="form-label fw-semibold">Berat (kg)</label>
+                                    <input type="number" id="weight" class="form-control" placeholder="70">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="step-2" class="step-container">
+                            <h4 class="fw-bold mb-2">Unggah Hasil Tes Kesehatan</h4>
+                            <p class="text-muted mb-4">Unggah foto atau PDF laporan medis Anda (Opsional). Sistem akan mengekstrak data indikator secara otomatis.</p>
+                            
+                            <div class="card bg-light border-2 border-dashed border-secondary text-center cursor-pointer hover-card" onclick="simulateOCR()" style="cursor: pointer; transition: 0.3s;">
+                                <div class="card-body py-5">
+                                    <svg class="mb-3 text-secondary" width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                                    <h6 class="fw-semibold text-dark">Klik untuk memilih file (JPG, PNG, PDF)</h6>
+                                    <p class="text-muted small mt-1 mb-0">atau tarik dan lepas file ke area ini</p>
+                                    
+                                    <div id="ocr-loading" class="d-none mt-4 w-75 mx-auto">
+                                        <div class="progress" style="height: 10px;">
+                                            <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" style="width: 70%"></div>
+                                        </div>
+                                        <p class="small text-primary mt-2 fw-medium">Mengekstrak data... (Simulasi)</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="step-3" class="step-container">
+                            <h4 class="fw-bold mb-2">Ringkasan Kesehatan Otoritatif</h4>
+                            <p class="text-muted mb-4">Lengkapi atau periksa data berikut. Data ini menjadi dasar keamanan rencana Anda.</p>
+                            
+                            <div class="row g-3 mb-4">
+                                <div class="col-6 col-md-4">
+                                    <label class="form-label small fw-semibold">Tekanan Darah</label>
+                                    <input type="text" id="bp" class="form-control form-control-sm" placeholder="120/80">
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <label class="form-label small fw-semibold">Glukosa Puasa</label>
+                                    <input type="number" id="glucose" class="form-control form-control-sm" placeholder="mg/dL">
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <label class="form-label small fw-semibold">Asam Urat</label>
+                                    <input type="number" step="0.1" id="uric" class="form-control form-control-sm" placeholder="mg/dL">
+                                </div>
+                                <div class="col-6 col-md-6">
+                                    <label class="form-label small fw-semibold">Kolesterol Total</label>
+                                    <input type="number" id="cholesterol" class="form-control form-control-sm" placeholder="mg/dL">
+                                </div>
+                                <div class="col-6 col-md-6">
+                                    <label class="form-label small fw-semibold">Resting Heart Rate</label>
+                                    <input type="number" id="rhr" class="form-control form-control-sm" placeholder="bpm">
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold">Kondisi Medis / Cedera (Opsional)</label>
+                                <textarea id="medical_conditions" class="form-control" rows="2" placeholder="Contoh: Asma, pernah operasi lutut, sakit punggung bawah..."></textarea>
+                            </div>
+
+                            <div id="female_conditional" class="d-none card bg-primary bg-opacity-10 border-primary mb-3">
+                                <div class="card-body p-3">
+                                    <label class="form-label fw-semibold text-primary">Konteks Fisiologis (Opsional)</label>
+                                    <textarea id="female_context" class="form-control form-control-sm" rows="2" placeholder="Contoh: Sedang menyusui, pascamelahirkan 3 bulan..."></textarea>
+                                    <div class="form-text text-primary" style="font-size: 0.7rem;">Hanya diisi jika relevan dengan target latihan Anda.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="step-4" class="step-container">
+                            <h4 class="fw-bold mb-2">Target</h4>
+                            <p class="text-muted mb-4">Pilih tujuan utama Anda, lalu tentukan target spesifik dan jangka waktunya.</p>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold">Target Utama</label>
+                                <select id="target_main" class="form-select form-select-lg" onchange="handleStagedTarget()">
+                                    <option value="">-- Pilih Target --</option>
+                                    <option value="build_muscle">Membangun Massa Otot (Build Muscle)</option>
+                                    <option value="fat_loss">Menurunkan Persentase Lemak (Fat Loss)</option>
+                                    <option value="weight_loss">Menurunkan Berat Badan (Weight Loss)</option>
+                                    <option value="improve_mobility">Meningkatkan Mobilitas / Kesehatan</option>
+                                    <option value="running_performance">Performa Lari (Running Performance)</option>
+                                    <option value="health_indicator">Memperbaiki Indikator Kesehatan</option>
+                                </select>
+                            </div>
+
+                            <div id="sub_target_container" class="d-none mb-4 p-3 bg-light border rounded">
+                                <!-- JS Injected -->
+                            </div>
+
+                            <div id="timeframe_container" class="d-none mb-3">
+                                <label class="form-label fw-semibold">Jangka Waktu Target (Minggu)</label>
+                                <input type="number" id="timeframe" class="form-control form-control-lg" placeholder="Contoh: 12">
+                            </div>
+                        </div>
+
+                        <div id="step-5" class="step-container">
+                            <h4 class="fw-bold mb-4">Jadwal & Preferensi</h4>
+
+                            <!-- Blok 1: Hari, Jenis, Alat -->
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <label class="form-label fw-semibold mb-0">Hari Latihan</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="selectAllDays" onchange="toggleSelectAllDays()">
+                                        <label class="form-check-label small fw-bold text-asha-blue" for="selectAllDays">Pilih Semua</label>
+                                    </div>
+                                </div>
+                                <div class="d-flex flex-wrap gap-2 mb-4" id="trainingDaysContainer">
+                                    <script>
+                                        const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+                                        days.forEach((d, i) => {
+                                            document.write(`
+                                                <div>
+                                                    <input type="checkbox" class="btn-check btn-check-custom day-cb" id="day_${i}" value="${d}" onchange="syncRestDays()">
+                                                    <label class="btn px-3 py-1" for="day_${i}">${d}</label>
+                                                </div>
+                                            `);
+                                        });
+                                    </script>
+                                </div>
+
+                                <label class="form-label fw-semibold mb-2">Hari Istirahat (Rest Days)</label>
+                                <div class="d-flex flex-wrap gap-2 mb-4" id="restDaysContainer">
+                                    <script>
+                                        days.forEach((d, i) => {
+                                            document.write(`
+                                                <div>
+                                                    <input type="checkbox" class="btn-check btn-check-custom rest-cb" id="rest_${i}" value="${d}">
+                                                    <label class="btn px-3 py-1" for="rest_${i}">${d}</label>
+                                                </div>
+                                            `);
+                                        });
+                                    </script>
+                                </div>
+
+                                <div class="row g-4">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold mb-2">Jenis Latihan</label>
+                                        <div class="d-flex flex-column gap-2">
+                                            <div><input type="checkbox" class="btn-check btn-check-custom type-cb" id="type_1" value="Cardio"><label class="btn w-100 text-start" for="type_1">Cardio</label></div>
+                                            <div><input type="checkbox" class="btn-check btn-check-custom type-cb" id="type_2" value="Strength"><label class="btn w-100 text-start" for="type_2">Strength Training</label></div>
+                                            <div><input type="checkbox" class="btn-check btn-check-custom type-cb" id="type_3" value="Mobility & Flexibility"><label class="btn w-100 text-start" for="type_3">Mobility & Flexibility</label></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold mb-2">Peralatan Tersedia</label>
+                                        <div class="d-flex flex-column gap-2">
+                                            <div><input type="checkbox" class="btn-check btn-check-custom eq-cb" id="eq_1" value="Tidak Ada (Gunakan Bodyweight)" checked><label class="btn w-100 text-start" for="eq_1">Tidak Ada (Bodyweight)</label></div>
+                                            <div><input type="checkbox" class="btn-check btn-check-custom eq-cb" id="eq_2" value="Dumbbells"><label class="btn w-100 text-start" for="eq_2">Dumbbells</label></div>
+                                            <div><input type="checkbox" class="btn-check btn-check-custom eq-cb" id="eq_3" value="Barbell"><label class="btn w-100 text-start" for="eq_3">Barbell</label></div>
+                                            <div><input type="checkbox" class="btn-check btn-check-custom eq-cb" id="eq_4" value="Fitness Ball"><label class="btn w-100 text-start" for="eq_4">Fitness Ball</label></div>
+                                            <div><input type="checkbox" class="btn-check btn-check-custom eq-cb" id="eq_5" value="Treadmil / Walking Pad"><label class="btn w-100 text-start" for="eq_5">Treadmil / Walking Pad</label></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr class="session-divider">
+
+                            <!-- Blok 2: Waktu -->
+                            <div class="row g-4 mb-4">
+                                <div class="col-6">
+                                    <label class="form-label fw-semibold">Waktu Latihan</label>
+                                    <input type="time" id="pref_time" class="form-control form-control-lg">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label fw-semibold">Durasi (Menit)</label>
+                                    <input type="number" id="duration" class="form-control form-control-lg" value="45">
+                                </div>
+                            </div>
+
+                            <hr class="session-divider">
+
+                            <!-- Blok 3: Diet -->
+                            <div>
+                                <label class="form-label fw-semibold">Pola Diet</label>
+                                <select id="diet" class="form-select" onchange="toggleIF()">
+                                    <option value="Tidak ada diet spesifik">Tidak ada diet spesifik</option>
+                                    <option value="Vegan">Vegan</option>
+                                    <option value="Vegetarian">Vegetarian</option>
+                                    <option value="Carnivore">Carnivore</option>
+                                    <option value="Keto">Keto</option>
+                                    <option value="Intermittent Fasting">Intermittent Fasting (IF)</option>
+                                </select>
+
+                                <div id="if_container" class="d-none mt-3 p-3 bg-light border rounded row g-3">
+                                    <div class="col-6">
+                                        <label class="form-label small fw-semibold text-secondary">Protokol IF</label>
+                                        <select id="if_protocol" class="form-select form-select-sm">
+                                            <option value="12:12">12:12</option><option value="14:10">14:10</option>
+                                            <option value="16:8">16:8</option><option value="18:6">18:6</option>
+                                            <option value="Custom">Custom</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label small fw-semibold text-secondary">Jendela Makan</label>
+                                        <input type="text" id="eating_window" class="form-control form-control-sm" placeholder="Misal: 12:00 - 20:00">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="step-6" class="step-container">
+                            <h4 class="fw-bold mb-4">Eksekusi Plan</h4>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold">Tipe Rencana (Plan Type) <span class="text-danger">*</span></label>
+                                <select id="plan_type" class="form-select form-select-lg" required>
+                                    <option value="training_only" selected>Training Plan Saja</option>
+                                    <option value="integrated">Training + Meal Plan (Terintegrasi)</option>
+                                    <option value="meal_only">Meal Plan Saja</option>
+                                </select>
+                                <div class="invalid-feedback">Silakan pilih tipe rencana.</div>
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold">Tanggal Mulai Plan <span class="text-danger">*</span></label>
+                                <input type="date" id="start_date" class="form-control form-control-lg" required>
+                                <div class="invalid-feedback">Tanggal mulai plan wajib diisi.</div>
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold">Platform Kalender</label>
+                                <select id="calendar" class="form-select form-select-lg">
+                                    <option value="Google">Google Calendar</option>
+                                    <option value="Outlook">Microsoft Outlook</option>
+                                    <option value="Apple">Apple Calendar</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="step-7" class="step-container">
+                            <h4 class="fw-bold mb-2">Review & Konfirmasi</h4>
+                            <p class="text-muted mb-4">Pastikan data sesuai. Setelah dicentang, prompt akan tersalin dan terkirim otomatis.</p>
+                            
+                            <div class="bg-light border rounded p-3 mb-4" style="max-height: 250px; overflow-y: auto;">
+                                <div id="summary_box" class="small lh-lg">
+                                    <!-- Diisi JS -->
+                                </div>
+                            </div>
+
+                            <div class="card bg-asha-blue bg-opacity-10 border-asha-blue">
+                                <div class="card-body p-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="confirmation_cb" onchange="handleConfirmation()" style="transform: scale(1.2); margin-top: 0.2rem;">
+                                        <label class="form-check-label fw-medium ms-2 text-dark" for="confirmation_cb">
+                                            Saya telah memeriksa informasi dan asumsi yang akan digunakan untuk membuat prompt.
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+
+                <!-- Modal Footer Navigation -->
+                <div class="modal-footer justify-content-between border-top-0 px-4 px-md-5 pb-4 pt-0">
+                    <button type="button" class="btn btn-outline-secondary px-4" id="btnPrev" onclick="prevStep()">Sebelumnya</button>
+                    <div>
+                        <button type="button" class="btn btn-link text-danger text-decoration-none me-3 fw-medium" id="btnReset" onclick="resetApp()">Mulai Lagi</button>
+                        <button type="button" class="btn btn-asha px-4 fw-medium" id="btnNext" onclick="handleNext()">Selanjutnya</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Sukses Handoff (Menimpa Wizard) -->
+    <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center px-4 pb-5 pt-0">
+                    <div class="icon-circle bg-success bg-opacity-10 mb-4">
+                        <svg class="text-success" width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                    </div>
+                    
+                    <h4 class="fw-bold text-dark mb-2" id="modal-title">Selamat, prompt siap!</h4>
+                    <p class="text-muted mb-4">Prompt ASHA telah otomatis disalin ke clipboard Anda.</p>
+                    
+                    <div class="card bg-light border-0 mb-4">
+                        <div class="card-body py-3 fst-italic text-secondary small fw-medium" id="modal-quote">
+                            "Harapan bukanlah rencana. Harapan adalah awal dari sebuah rencana."
+                        </div>
+                    </div>
+
+                    <p class="small fw-semibold text-dark mb-3">Pilih AI Chat favoritmu untuk mem-paste prompt:</p>
+                    
+                    <div class="row g-2">
+                        <div class="col-6 col-sm-4"><a href="https://chatgpt.com/" target="_blank" class="ai-card d-block p-2"><span class="fw-bold small">ChatGPT</span></a></div>
+                        <div class="col-6 col-sm-4"><a href="https://gemini.google.com/" target="_blank" class="ai-card d-block p-2"><span class="fw-bold small">Gemini</span></a></div>
+                        <div class="col-6 col-sm-4"><a href="https://claude.ai/" target="_blank" class="ai-card d-block p-2"><span class="fw-bold small">Claude</span></a></div>
+                        <div class="col-6"><a href="https://grok.com/" target="_blank" class="ai-card d-block p-2"><span class="fw-bold small">Grok</span></a></div>
+                        <div class="col-6"><a href="https://copilot.microsoft.com/" target="_blank" class="ai-card d-block p-2"><span class="fw-bold small">Copilot</span></a></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        
+        // --- Webhook Google Sheets Config ---
+        // Ganti URL ini dengan URL Webhook Google Apps Script Anda (Deploy as Web App)
+        const GOOGLE_SHEETS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbz_XXXXXXXXXXXX/exec";
+        
+        // State Wizard Modal
+        let currentStep = 1;
+        const totalSteps = 7;
+        const stepTitles = [
+            "Profil Pribadi", 
+            "Unggah Hasil Tes", 
+            "Ringkasan Kesehatan", 
+            "Target", 
+            "Jadwal & Preferensi", 
+            "Eksekusi Plan", 
+            "Review & Konfirmasi"
+        ];
+        
+        let ashaWizardModalInstance;
+        let successModalInstance;
+
+        window.onload = () => {
+            // Set Tanggal Mulai Default ke H+1 (Besok) dengan format YYYY-MM-DD yang aman
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const yyyy = tomorrow.getFullYear();
+            const mm = String(tomorrow.getMonth() + 1).padStart(2, '0');
+            const dd = String(tomorrow.getDate()).padStart(2, '0');
+            document.getElementById('start_date').value = `${yyyy}-${mm}-${dd}`;
+            
+            ashaWizardModalInstance = new bootstrap.Modal(document.getElementById('ashaWizardModal'));
+            successModalInstance = new bootstrap.Modal(document.getElementById('successModal'));
+        };
+
+        function openWizard() {
+            resetApp();
+            ashaWizardModalInstance.show();
+        }
+
+        function updateModalUI() {
+            // Sembunyikan semua step, tampilkan yang aktif
+            document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
+            document.getElementById(`step-${currentStep}`).classList.add('active');
+
+            // Update Progress Bar & Text Header Modal
+            const progress = (currentStep / totalSteps) * 100;
+            document.getElementById('wizardProgress').style.width = `${progress}%`;
+            document.getElementById('stepLabel').innerText = `Langkah ${currentStep} dari ${totalSteps}: ${stepTitles[currentStep-1]}`;
+            document.getElementById('stepPercentage').innerText = `${Math.round(progress)}%`;
+
+            // Atur Visibilitas Tombol Footer
+            const btnPrev = document.getElementById('btnPrev');
+            const btnNext = document.getElementById('btnNext');
+
+            if (currentStep === 1) {
+                btnPrev.style.display = 'none';
+            } else {
+                btnPrev.style.display = 'inline-block';
+            }
+
+            if (currentStep === totalSteps - 1) {
+                btnNext.innerText = 'Review Data';
+                btnNext.style.display = 'inline-block';
+            } else if (currentStep === totalSteps) {
+                btnNext.style.display = 'none'; // Disembunyikan karena pake checkbox
+            } else {
+                btnNext.innerText = 'Selanjutnya';
+                btnNext.style.display = 'inline-block';
+            }
+
+            // Scroll modal body kembali ke atas setiap pindah step
+            document.getElementById('wizardModalBody').scrollTop = 0;
+        }
+
+        function handleNext() {
+            // Validasi pada Langkah 6
+            if (currentStep === 6) {
+                let isValid = true;
+                const planType = document.getElementById('plan_type');
+                const startDate = document.getElementById('start_date');
+
+                if (!planType.value) {
+                    planType.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    planType.classList.remove('is-invalid');
+                }
+
+                if (!startDate.value) {
+                    startDate.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    startDate.classList.remove('is-invalid');
+                }
+
+                if (!isValid) return; // Hentikan proses jika form tidak valid
+                
+                generateSummary();
+            }
+
+            if (currentStep < totalSteps) {
+                currentStep++;
+                updateModalUI();
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                document.getElementById('confirmation_cb').checked = false;
+                updateModalUI();
+            }
+        }
+
+        function resetApp() {
+            document.getElementById('asha-form').reset();
+            document.getElementById('confirmation_cb').checked = false;
+            
+            // Reset state validasi
+            document.getElementById('plan_type').classList.remove('is-invalid');
+            document.getElementById('start_date').classList.remove('is-invalid');
+            
+            // Kembalikan default tanggal mulai ke H+1 (Besok)
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const yyyy = tomorrow.getFullYear();
+            const mm = String(tomorrow.getMonth() + 1).padStart(2, '0');
+            const dd = String(tomorrow.getDate()).padStart(2, '0');
+            document.getElementById('start_date').value = `${yyyy}-${mm}-${dd}`;
+            
+            updatePersona();
+            handleStagedTarget();
+            toggleIF();
+            
+            // Reset checklist hari istirahat menjadi aktif semua (tidak disabled)
+            document.querySelectorAll('.rest-cb').forEach(cb => {
+                cb.disabled = false;
+                cb.nextElementSibling.classList.remove('opacity-50');
+            });
+
+            currentStep = 1;
+            updateModalUI();
+        }
+
+        // Persona Dinamis Latar Belakang
+        function updatePersona() {
+            const sex = document.getElementById('sex').value;
+            const bg = document.getElementById('app-background');
+            const femaleCtx = document.getElementById('female_conditional');
+            
+            bg.style.opacity = 0;
+            setTimeout(() => {
+                if (sex === 'male') {
+                    bg.style.backgroundImage = "url('Hijabi Athlete in Mauve Activewear.png')";
+                } else if (sex === 'female') {
+                    bg.style.backgroundImage = "url('Minimalist Fitness Portrait with Negative Space.png')";
+                } else {
+                    bg.style.backgroundImage = "url('Modern Activewear Duo in White Studio_2.png')";
+                }
+                bg.style.opacity = 1;
+            }, 500);
+
+            if(sex === 'female') {
+                femaleCtx.classList.remove('d-none');
+            } else {
+                femaleCtx.classList.add('d-none');
+                document.getElementById('female_context').value = '';
+            }
+            document.getElementById('confirmation_cb').checked = false;
+        }
+
+        // Simulasi OCR
+        function simulateOCR() {
+            const loader = document.getElementById('ocr-loading');
+            loader.classList.remove('d-none');
+            setTimeout(() => {
+                loader.classList.add('d-none');
+                document.getElementById('bp').value = "120/80";
+                document.getElementById('glucose').value = "95";
+                document.getElementById('cholesterol').value = "190";
+                handleNext();
+            }, 1200);
+        }
+
+        // Logika Target Bertahap
+        function handleStagedTarget() {
+            const goal = document.getElementById('target_main').value;
+            const subContainer = document.getElementById('sub_target_container');
+            const timeContainer = document.getElementById('timeframe_container');
+            let html = '';
+            
+            if (goal === 'build_muscle') {
+                html = `<label class="form-label fw-semibold">Target Muscle Mass (% dari berat badan)</label><input type="number" id="sub_target_val" class="form-control">`;
+            } else if (goal === 'fat_loss') {
+                html = `<label class="form-label fw-semibold">Target Fat Percentage (%)</label><input type="number" id="sub_target_val" class="form-control">`;
+            } else if (goal === 'weight_loss') {
+                html = `<label class="form-label fw-semibold">Target Berat Badan (Kg)</label><input type="number" id="sub_target_val" class="form-control">`;
+            } else if (goal === 'running_performance') {
+                html = `
+                    <label class="form-label fw-semibold">Jarak Lari</label>
+                    <select id="sub_target_val" class="form-select mb-3"><option value="5K">5K</option><option value="10K">10K</option><option value="Half Marathon">Half Marathon</option><option value="Full Marathon">Full Marathon</option></select>
+                    <label class="form-label fw-semibold">Target Pace (menit/km)</label><input type="text" id="sub_target_val_2" class="form-control" placeholder="Contoh: 6:30">
+                `;
+            } else if (goal === 'health_indicator') {
+                html = `
+                    <label class="form-label fw-semibold">Indikator yang Ditargetkan</label><input type="text" id="sub_target_val" class="form-control mb-3" placeholder="Contoh: Kolesterol LDL">
+                    <label class="form-label fw-semibold">Target Nilai</label><input type="text" id="sub_target_val_2" class="form-control" placeholder="Contoh: < 100 mg/dL">
+                `;
+            }
+
+            if(goal && goal !== 'improve_mobility') {
+                subContainer.innerHTML = html;
+                subContainer.classList.remove('d-none');
+                timeContainer.classList.remove('d-none');
+            } else if (goal === 'improve_mobility') {
+                subContainer.classList.add('d-none');
+                subContainer.innerHTML = '';
+                timeContainer.classList.remove('d-none');
+            } else {
+                subContainer.classList.add('d-none');
+                timeContainer.classList.add('d-none');
+            }
+        }
+
+        // Logika Jadwal (Checkbox & Disabled State)
+        function toggleSelectAllDays() {
+            const selectAll = document.getElementById('selectAllDays').checked;
+            document.querySelectorAll('.day-cb').forEach(cb => cb.checked = selectAll);
+            syncRestDays();
+        }
+
+        function syncRestDays() {
+            const dayCbs = Array.from(document.querySelectorAll('.day-cb'));
+            const restCbs = Array.from(document.querySelectorAll('.rest-cb'));
+            
+            dayCbs.forEach((cb, i) => {
+                if(cb.checked) {
+                    restCbs[i].checked = false;
+                    restCbs[i].disabled = true;
+                    // Styling disabled bootstrap toggle label
+                    restCbs[i].nextElementSibling.classList.add('opacity-50'); 
+                } else {
+                    restCbs[i].disabled = false;
+                    restCbs[i].nextElementSibling.classList.remove('opacity-50');
+                }
+            });
+            document.getElementById('selectAllDays').checked = dayCbs.every(cb => cb.checked);
+        }
+
+        // Logika Diet IF
+        function toggleIF() {
+            const diet = document.getElementById('diet').value;
+            const container = document.getElementById('if_container');
+            if(diet === 'Intermittent Fasting') {
+                container.classList.remove('d-none');
+            } else {
+                container.classList.add('d-none');
+            }
+        }
+
+        // Ekstraksi Checkbox Values
+        function getCheckedValues(className) {
+            return Array.from(document.querySelectorAll(`.${className}:checked`)).map(cb => cb.value);
+        }
+
+        function generateSummary() {
+            const name = document.getElementById('nickname').value || '-';
+            const sex = document.getElementById('sex').options[document.getElementById('sex').selectedIndex].text;
+            const goal = document.getElementById('target_main').options[document.getElementById('target_main').selectedIndex]?.text || '-';
+            const plan = document.getElementById('plan_type').options[document.getElementById('plan_type').selectedIndex].text;
+            const days = getCheckedValues('day-cb').join(', ') || 'Belum dipilih';
+            
+            document.getElementById('summary_box').innerHTML = `
+                <div class="row g-2">
+                    <div class="col-12 border-bottom pb-1"><span class="text-muted d-block">Personal:</span> <strong>${name} (${sex})</strong></div>
+                    <div class="col-12 border-bottom pb-1"><span class="text-muted d-block">Target Utama:</span> <strong>${goal}</strong></div>
+                    <div class="col-12 border-bottom pb-1"><span class="text-muted d-block">Hari Latihan:</span> <strong>${days}</strong></div>
+                    <div class="col-12"><span class="text-muted d-block">Plan:</span> <strong>${plan}</strong></div>
+                </div>
+            `;
+        }
+
+        // Mengirim data ke Google Sheets
+        function sendDataToWebhook(payload) {
+            if(!GOOGLE_SHEETS_WEBHOOK_URL.includes("script.google.com")) return; // Skip if URL not configured
+            
+            fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
+                method: 'POST',
+                mode: 'no-cors', // Penting untuk bypass CORS policy di browser ke Webhook Apps Script
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).catch(err => console.error("Webhook error:", err));
+        }
+
+        // Generate Master Prompt & Handoff
+        function handleConfirmation() {
+            if(document.getElementById('confirmation_cb').checked) {
+                const promptText = buildMasterPrompt();
+                
+                // Copy to Clipboard
+                const tempTextArea = document.createElement('textarea');
+                tempTextArea.value = promptText;
+                document.body.appendChild(tempTextArea);
+                tempTextArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(tempTextArea);
+
+                // Siapkan data JSON untuk Google Sheets
+                const payloadToSheets = {
+                    timestamp: new Date().toISOString(),
+                    nickname: document.getElementById('nickname').value,
+                    age: document.getElementById('age').value,
+                    sex: document.getElementById('sex').value,
+                    target_main: document.getElementById('target_main').value,
+                    plan_type: document.getElementById('plan_type').value,
+                    generated_prompt: promptText
+                };
+                
+                // Kirim ke backend
+                sendDataToWebhook(payloadToSheets);
+
+                // Modifikasi & Tampilkan UI Success Modal
+                const name = document.getElementById('nickname').value || 'Teman ASHA';
+                document.getElementById('modal-title').innerText = `Selamat ${name}, prompt siap!`;
+                
+                const quotes = [
+                    "Konsistensi lebih penting daripada intensitas yang sesaat.",
+                    "Perjalanan ribuan mil dimulai dengan satu langkah.",
+                    "Tubuhmu adalah rumahmu, rawatlah dengan baik."
+                ];
+                document.getElementById('modal-quote').innerText = `"${quotes[Math.floor(Math.random() * quotes.length)]}"`;
+                
+                // Tutup Wizard, Buka Success Modal
+                ashaWizardModalInstance.hide();
+                successModalInstance.show();
+            }
+        }
+
+        function buildMasterPrompt() {
+            const name = document.getElementById('nickname').value || '[Tidak Disediakan]';
+            const age = document.getElementById('age').value || '[Tidak Disediakan]';
+            const sex = document.getElementById('sex').options[document.getElementById('sex').selectedIndex].text;
+            const eth = document.getElementById('ethnicity').value || '[Tidak Disediakan]';
+            const ht = document.getElementById('height').value ? document.getElementById('height').value + ' cm' : '[Tidak Disediakan]';
+            const wt = document.getElementById('weight').value ? document.getElementById('weight').value + ' kg' : '[Tidak Disediakan]';
+            
+            const bp = document.getElementById('bp').value || '-';
+            const rhr = document.getElementById('rhr').value || '-';
+            const med = document.getElementById('medical_conditions').value || '[Tidak ada catatan khusus]';
+            const femaleCtx = document.getElementById('female_context').value || '-';
+
+            const goal = document.getElementById('target_main').options[document.getElementById('target_main').selectedIndex]?.text;
+            const subVal = document.getElementById('sub_target_val') ? document.getElementById('sub_target_val').value : '-';
+            const timeframe = document.getElementById('timeframe').value || '-';
+
+            const tDays = getCheckedValues('day-cb').join(', ') || 'Belum dipilih';
+            const rDays = getCheckedValues('rest-cb').join(', ') || 'Fleksibel';
+            const types = getCheckedValues('type-cb').join(', ') || 'General';
+            const eq = getCheckedValues('eq-cb').join(', ') || 'Bodyweight';
+            
+            const time = document.getElementById('pref_time').value || 'Fleksibel';
+            const dur = document.getElementById('duration').value || '45';
+            
+            const diet = document.getElementById('diet').value;
+            const ifP = document.getElementById('if_protocol').value;
+            const ifW = document.getElementById('eating_window').value;
+            const dietStr = diet === 'Intermittent Fasting' ? `${diet} (${ifP}, Window: ${ifW})` : diet;
+
+            const pType = document.getElementById('plan_type').value;
+            const pStart = document.getElementById('start_date').value || '[Tentukan Hari Ini]';
+            const cal = document.getElementById('calendar').value;
+
+            let prompt = `SELURUH RESPONS HARUS MENGGUNAKAN BAHASA INDONESIA.\n\n`;
+            
+            prompt += `Anda adalah Asha, seorang Personal trainer, Sports scientist, Nutrition professional, Health/medical safety reviewer, Running coach, when applicable dan Recovery/mobility specialist.\n\n`;
+
+            if(name !== '[Tidak Disediakan]') {
+                prompt += `Sapaan Panggilan: Halo, panggil saja saya ${name}.\nSilakan sapa saya dengan hangat menggunakan nama tersebut di awal respons Anda.\n\n`;
+            }
+
+            prompt += `Buatkan rencana kesehatan berdasarkan data berikut:\n
+--- PROFIL PRIBADI ---
+- Usia: ${age}
+- Jenis Kelamin: ${sex}
+- Etnis: ${eth}
+- Tinggi: ${ht}, Berat: ${wt}
+
+--- INDIKATOR KESEHATAN ---
+- Tekanan Darah: ${bp}
+- RHR: ${rhr}
+- Kondisi/Cedera: ${med}
+- Konteks Fisiologis: ${femaleCtx}
+
+--- TARGET ---
+- Target Utama: ${goal}
+- Sub-Target: ${subVal}
+- Jangka Waktu: ${timeframe} Minggu
+
+--- JADWAL & PREFERENSI ---
+- Hari Latihan: ${tDays}
+- Hari Istirahat: ${rDays}
+- Waktu & Durasi: ${time}, ${dur} Menit
+- Jenis Latihan: ${types}
+- Peralatan: ${eq}
+- Pola Diet: ${dietStr}
+
+--- PREFERENSI RENCANA ---
+- Tanggal Mulai: ${pStart}
+- Platform Kalender: ${cal}
+
+SEX-AWARE PERSONALIZATION
+Gunakan informasi jenis kelamin pengguna hanya sebagai salah
+satu variabel kontekstual dalam personalisasi.
+Jangan menggunakan jenis kelamin sebagai satu-satunya dasar
+untuk menentukan latihan, intensitas, kebutuhan energi,
+jumlah kalori, komposisi makanan, atau target kesehatan.
+Pertimbangkan faktor fisiologis yang relevan dengan jenis
+kelamin hanya jika memiliki relevansi terhadap tujuan,
+kondisi kesehatan, usia, aktivitas, atau kebutuhan pengguna.
+Untuk pengguna perempuan, pertimbangkan faktor seperti
+kehamilan, pascapersalinan, menyusui, siklus menstruasi,
+atau kesehatan tulang hanya jika informasi tersebut tersedia
+atau relevan. Jangan mengasumsikan kondisi tersebut.
+Untuk pengguna laki-laki, pertimbangkan faktor fisiologis
+yang relevan hanya apabila didukung oleh informasi pengguna
+dan relevan terhadap perencanaan.
+Jangan membuat stereotip.
+Dasarkan rencana terutama pada tujuan pengguna, kondisi, usia, alat, dan beban latihan.
+Jika informasi penting tidak tersedia, jangan mengarang.\n\n`;
+
+            if (pType === 'integrated' || pType === 'training_only') {
+                prompt += `PERSYARATAN RENCANA LATIHAN (HARI DEMI HARI):
+Kemas training plan dalam bentuk tabel sesuai durasi yang diinginkan.
+Untuk setiap sesi di dalam tabel sertakan: Tanggal, Jenis Sesi, Durasi, Pemanasan, Latihan Inti, Pendinginan.
+ATURAN MUTLAK: Hanya gunakan peralatan dari daftar [${eq}].\n
+PANDUAN GERAKAN LATIHAN: Untuk setiap gerakan di tabel, berikan penjelasan di bawahnya mengenai:
+1. Nama Gerakan
+2. Fungsi / Manfaat & Otot
+3. Repetisi (Set/Rep/Tempo)
+4. Cara Melakukan Gerakan (napas, postur)
+5. Contoh visual dari darebee.com.\n\n`;
+            }
+
+            if (pType === 'integrated' || pType === 'meal_only') {
+                prompt += `PERSYARATAN RENCANA MAKAN (HARI DEMI HARI):
+Kemas meal plan dalam bentuk tabel sesuai durasi yang diinginkan.
+Sertakan di tabel: Waktu makan, Pilihan makanan, Porsi, Estimasi Energi/Makro, dan Hidrasi yang sesuai dengan pola diet ${dietStr}.\n\n`;
+            }
+
+            if (pType === 'integrated') {
+                prompt += `Jangan menyusun rencana latihan dan rencana makan sebagai dua hal yang terpisah secara logika. Optimalkan keduanya secara bersama-sama berdasarkan tujuan dan pola diet.\n\n`;
+            }
+
+            prompt += `OUTPUT KALENDER (.ics):
+Hasilkan file .ics untuk training plan yang disusun yang siap saya download dan impor ke kalender saya. Pastikan format RFC 5545 valid dan menggunakan tanggal mulai ${pStart}.\n\n`;
+
+            return prompt;
+        }
+    </script>
+</body>
+</html>

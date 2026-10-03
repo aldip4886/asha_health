@@ -969,8 +969,8 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
 
     const promptReadySection = state.confirmation.confirmed
       ? `
-          <div class="asha-floating-popup-overlay" data-role="floating-popup-overlay">
-            <div class="asha-prompt-ready-popup asha-floating-popup" data-role="prompt-ready-popup" role="dialog" aria-modal="true" aria-live="polite">
+          <div class="asha-floating-popup-overlay" id="successModal" data-role="floating-popup-overlay">
+            <div class="asha-prompt-ready-popup asha-floating-popup text-center rounded-4 border-0 shadow" data-role="prompt-ready-popup" role="dialog" aria-modal="true" aria-live="polite">
               <button
                 type="button"
                 class="btn-close asha-popup-close-btn"
@@ -978,106 +978,106 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
                 data-action="close-popup"
                 title="${isId ? 'Tutup Pop-up' : 'Close Pop-up'}"
               ></button>
-              <div class="d-flex align-items-center justify-content-center text-center gap-3">
-                <div class="asha-popup-badge">✓</div>
-                <div class="asha-popup-body">
-                  <strong class="asha-popup-greeting">Selamat ${displayName}, prompt kamu sudah siap!</strong>
-                  <p class="asha-popup-instruction mb-0">Silakan klik AI Chat Interface favoritmu untuk membuat plan.</p>
-                </div>
+              <div class="icon-circle bg-success bg-opacity-10 mb-2">
+                <svg class="text-success" width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+              </div>
+              <div class="asha-popup-body">
+                <h4 class="fw-bold text-dark mb-2 asha-popup-greeting" id="modal-title">Selamat ${displayName}, prompt kamu sudah siap!</h4>
+                <p class="text-muted mb-2 asha-popup-instruction">Silakan klik AI Chat Interface favoritmu untuk membuat plan.</p>
               </div>
 
               <div class="asha-ai-providers-section text-center">
-                <h3 class="asha-ai-providers-title text-center">${
+                <p class="small fw-semibold text-dark mb-3 asha-ai-providers-title text-center">${
                   isId
-                    ? 'Buka Chat Interface Pilihan Anda:'
+                    ? 'Pilih AI Chat favoritmu untuk mem-paste prompt:'
                     : 'Open Your Preferred AI Chat Interface:'
-                }</h3>
+                }</p>
                 <div class="asha-ai-providers-grid justify-content-center">
                   <a
                     href="https://chatgpt.com/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="asha-ai-logo-btn btn"
+                    class="ai-card asha-ai-logo-btn btn"
                     data-ai-provider="chatgpt"
                     title="ChatGPT"
                   >
                     <span class="asha-ai-icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                      <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
                         <path d="M22.28 9.82a5.98 5.98 0 0 0-.52-4.91 6.05 6.05 0 0 0-6.51-2.9A6.07 6.07 0 0 0 4.98 4.18a5.98 5.98 0 0 0-4 2.9 6.05 6.05 0 0 0 .74 7.1 5.98 5.98 0 0 0 .51 4.91 6.05 6.05 0 0 0 6.51 2.9A5.98 5.98 0 0 0 13.26 24a6.06 6.06 0 0 0 5.77-4.21 5.99 5.99 0 0 0 4-2.9 6.06 6.06 0 0 0-.75-7.07zM13.26 22.43a4.48 4.48 0 0 1-2.88-1.04l.14-.08 4.78-2.76a.8.8 0 0 0 .39-.68v-6.74l2.02 1.17a.07.07 0 0 1 .04.05v5.58a4.5 4.5 0 0 1-4.49 4.5zm-9.66-4.13a4.47 4.47 0 0 1-.54-3.01l.14.09 4.78 2.76a.77.77 0 0 0 .78 0l5.84-3.37v2.33a.08.08 0 0 1-.03.06L9.74 19.95a4.5 4.5 0 0 1-6.14-1.65zM2.34 7.9a4.49 4.49 0 0 1 2.37-1.97V11.6a.77.77 0 0 0 .39.68l5.81 3.35-2.02 1.17a.08.08 0 0 1-.07 0l-4.83-2.79A4.5 4.5 0 0 1 2.34 7.9zm16.6 3.86-5.84-3.38 2.02-1.16a.08.08 0 0 1 .07 0l4.83 2.79a4.49 4.49 0 0 1-.68 8.1v-5.67a.79.79 0 0 0-.4-.68zm2.01-3.02-.14-.09-4.77-2.78a.78.78 0 0 0-.79 0L9.41 9.23V6.9a.07.07 0 0 1 .03-.06l4.83-2.79a4.5 4.5 0 0 1 6.68 4.66zM8.31 12.86l-2.02-1.16a.08.08 0 0 1-.04-.06V6.07a4.5 4.5 0 0 1 7.38-3.45l-.14.08-4.78 2.76a.8.8 0 0 0-.39.68zm1.1-2.37 2.6-1.5 2.6 1.5v3l-2.6 1.5-2.6-1.5z"/>
                       </svg>
                     </span>
-                    <span>ChatGPT</span>
+                    <span class="fw-bold small">ChatGPT</span>
                   </a>
 
                   <a
                     href="https://gemini.google.com/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="asha-ai-logo-btn btn"
+                    class="ai-card asha-ai-logo-btn btn"
                     data-ai-provider="gemini"
                     title="Google Gemini"
                   >
                     <span class="asha-ai-icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                      <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
                         <path d="M12 2C12 7.52 16.48 12 22 12C16.48 12 12 16.48 12 22C12 16.48 7.52 12 2 12C7.52 12 12 7.52 12 2Z"/>
                       </svg>
                     </span>
-                    <span>Gemini</span>
+                    <span class="fw-bold small">Gemini</span>
                   </a>
 
                   <a
                     href="https://claude.ai/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="asha-ai-logo-btn btn"
+                    class="ai-card asha-ai-logo-btn btn"
                     data-ai-provider="claude"
                     title="Anthropic Claude"
                   >
                     <span class="asha-ai-icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                      <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
                         <path d="M12 2L14.4 9.2L21.5 6.8L16.3 12.4L22 17.2L14.6 16.1L15.2 23.5L11.2 17.2L5.8 22.4L8.5 15.4L1.5 14.5L7.9 10.8L4.2 4.2L10.6 8.2L12 2Z"/>
                       </svg>
                     </span>
-                    <span>Claude</span>
+                    <span class="fw-bold small">Claude</span>
                   </a>
 
                   <a
                     href="https://grok.com/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="asha-ai-logo-btn btn"
+                    class="ai-card asha-ai-logo-btn btn"
                     data-ai-provider="grok"
                     title="xAI Grok"
                   >
                     <span class="asha-ai-icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                      <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
                         <path d="M3 21L21 3M8 3H21V16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
                       </svg>
                     </span>
-                    <span>Grok</span>
+                    <span class="fw-bold small">Grok</span>
                   </a>
 
                   <a
                     href="https://copilot.microsoft.com/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="asha-ai-logo-btn btn"
+                    class="ai-card asha-ai-logo-btn btn"
                     data-ai-provider="copilot"
                     title="Microsoft Copilot"
                   >
                     <span class="asha-ai-icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                      <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
                         <path d="M7.5 4C5.01 4 3 6.01 3 8.5v2.25C3 12.55 4.45 14 6.25 14h2.5c1.24 0 2.25-1.01 2.25-2.25V8.5C11 6.01 8.99 4 6.5 4h1zm9 0c2.49 0 4.5 2.01 4.5 4.5v2.25c0 1.8-1.45 3.25-3.25 3.25h-2.5C14.01 14 13 12.99 13 11.75V8.5C13 6.01 15.01 4 17.5 4h-1zM6.5 15.5C4.57 15.5 3 17.07 3 19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2 0-1.93-1.57-3.5-3.5-3.5h-11z"/>
                       </svg>
                     </span>
-                    <span>Copilot</span>
+                    <span class="fw-bold small">Copilot</span>
                   </a>
                 </div>
 
                 <div class="asha-new-plan-btn-wrapper mt-3 text-center">
                   <button
                     type="button"
-                    class="btn btn-primary asha-primary-btn rounded-pill px-4"
+                    class="btn btn-asha asha-primary-btn rounded-pill px-4"
                     data-action="start-over"
                     data-role="popup-new-plan-btn"
                   >
@@ -1086,7 +1086,7 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
                 </div>
               </div>
 
-              <blockquote class="asha-popup-quote text-center" data-role="motivational-quote">
+              <blockquote class="asha-popup-quote text-center" id="modal-quote" data-role="motivational-quote">
                 “${quoteText}”
               </blockquote>
             </div>
@@ -1095,11 +1095,11 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
       : '';
 
     return `
-      <section class="asha-card asha-review-card card shadow-sm">
-        <h2>${isId ? '7. Tinjauan & Konfirmasi (Mandatory Review)' : '7. Mandatory Review & Confirmation'}</h2>
-        <p class="asha-subtitle text-muted">${
+      <section class="asha-card asha-review-card card">
+        <h4 class="fw-bold mb-2">${isId ? 'Review & Konfirmasi' : '7. Mandatory Review & Confirmation'}</h4>
+        <p class="asha-subtitle text-muted mb-4">${
           isId
-            ? 'Periksa kembali seluruh informasi yang telah Anda isikan dalam tampilan form di bawah ini sebelum membuat prompt.'
+            ? 'Pastikan data sesuai. Setelah dicentang, prompt akan tersalin otomatis.'
             : 'Review all your pre-filled form details below before confirming.'
         }</p>
 
@@ -1340,16 +1340,20 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
           </div>
         </form>
 
-        <label class="asha-confirm-checkbox form-check-label">
-          <input type="checkbox" class="form-check-input" data-action="toggle-confirm" ${
-            state.confirmation.confirmed ? 'checked' : ''
-          } />
-          <span>${
-            isId
-              ? 'Saya telah memeriksa informasi dan asumsi yang akan digunakan untuk membuat prompt.'
-              : 'I have reviewed the information and assumptions (Saya telah memeriksa informasi dan asumsi yang akan digunakan untuk membuat prompt).'
-          }</span>
-        </label>
+        <div class="card bg-asha-blue bg-opacity-10 border-asha-blue mt-3">
+          <div class="card-body p-3">
+            <label class="asha-confirm-checkbox form-check-label m-0 p-0 border-0 bg-transparent">
+              <input type="checkbox" class="form-check-input" id="confirmation_cb" data-action="toggle-confirm" ${
+                state.confirmation.confirmed ? 'checked' : ''
+              } />
+              <span class="fw-medium ms-2 text-dark">${
+                isId
+                  ? 'Saya telah memeriksa informasi dan asumsi yang akan digunakan untuk membuat prompt.'
+                  : 'I have reviewed the information and assumptions (Saya telah memeriksa informasi dan asumsi yang akan digunakan untuk membuat prompt).'
+              }</span>
+            </label>
+          </div>
+        </div>
 
         ${promptReadySection}
       </section>
@@ -1384,7 +1388,7 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
               ? 'Perubahan signifikan terdeteksi. Konfirmasi sebelum mengganti seluruh rencana?'
               : 'Significant plan change detected. Confirm before replacing the whole plan?'
           }</p>
-          <button type="button" class="btn btn-primary asha-primary-btn" data-action="confirm-replacement">${
+          <button type="button" class="btn btn-asha asha-primary-btn" data-action="confirm-replacement">${
             isId ? 'Konfirmasi Rencana Baru' : 'Confirm Plan Replacement'
           }</button>
         </div>
@@ -1392,7 +1396,7 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
       : '';
 
     return `
-      <section class="asha-card asha-chat-panel card shadow-sm">
+      <section class="asha-card asha-chat-panel card shadow-sm p-4 mt-3">
         <div class="asha-chat-header">
           <h2>Personal Trainer Chat — Plan ${state.chat.currentVersion}</h2>
           <span class="asha-ephemeral-note">${
@@ -1415,7 +1419,7 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
               ? 'Tanyakan atau sesuaikan rencana Anda dalam Bahasa Indonesia...'
               : 'Ask or adapt your plan (Gemini responds in Bahasa Indonesia)...'
           }" />
-          <button type="button" class="btn btn-primary asha-primary-btn" data-action="send-chat">${isId ? 'Kirim' : 'Send'}</button>
+          <button type="button" class="btn btn-asha asha-primary-btn" data-action="send-chat">${isId ? 'Kirim' : 'Send'}</button>
         </div>
       </section>
     `;
@@ -1425,23 +1429,23 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
     const isFinalStep = state.ui.currentStep === TOTAL_WIZARD_STEPS - 1;
     const buttonsHtml = isFinalStep
       ? `
-          <button type="button" class="btn btn-outline-primary rounded-pill px-3" data-action="prev-step">${isId ? 'Sebelumnya' : 'Back'}</button>
-          <button type="button" class="btn btn-primary asha-primary-btn rounded-pill px-3" data-action="start-over">${
+          <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-action="prev-step">${isId ? 'Sebelumnya' : 'Back'}</button>
+          <button type="button" class="btn btn-asha asha-primary-btn rounded-pill px-3" data-action="start-over">${
             isId ? 'Mulai Lagi' : 'Start Over'
           }</button>
         `
       : `
-          <button type="button" class="btn btn-outline-primary rounded-pill px-3" data-action="prev-step" ${
+          <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-action="prev-step" ${
             state.ui.currentStep === 0 ? 'disabled' : ''
           }>${isId ? 'Sebelumnya' : 'Back'}</button>
-          <button type="button" class="btn btn-primary asha-primary-btn rounded-pill px-3" data-action="next-step">${
+          <button type="button" class="btn btn-asha asha-primary-btn rounded-pill px-3" data-action="next-step">${
             isId ? 'Selanjutnya' : 'Next'
           }</button>
         `;
 
     return `
       <nav class="asha-wizard-nav asha-wizard-nav-${position} asha-floating-nav asha-floating-nav-${position}" data-role="floating-nav" aria-label="Wizard Progress ${position}">
-        <span class="badge bg-warning text-dark fs-6 rounded-pill px-3">${isId ? 'Langkah' : 'Step'} ${state.ui.currentStep + 1} / ${TOTAL_WIZARD_STEPS}</span>
+        <span class="badge bg-asha-blue text-white fs-6 rounded-pill px-3">${isId ? 'Langkah' : 'Step'} ${state.ui.currentStep + 1} / ${TOTAL_WIZARD_STEPS}</span>
         <div class="asha-step-buttons">
           ${buttonsHtml}
         </div>
@@ -1449,15 +1453,37 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
     `;
   }
 
+  function getStepTitle(stepIdx: number, isId: boolean): string {
+    const titlesId = [
+      'Profil Pribadi',
+      'Unggah Hasil Tes',
+      'Ringkasan Kesehatan',
+      'Target',
+      'Jadwal & Preferensi',
+      'Eksekusi Plan',
+      'Review & Konfirmasi'
+    ];
+    const titlesEn = [
+      'Personal Profile',
+      'Upload Health Test',
+      'Health Snapshot',
+      'Target & Timeframe',
+      'Schedule & Preferences',
+      'Plan Execution',
+      'Review & Confirm'
+    ];
+    return (isId ? titlesId[stepIdx] : titlesEn[stepIdx]) ?? '';
+  }
+
   function renderTimelineDotStepTabs(isId: boolean): string {
     const stepDescriptors = isId
       ? [
-          { title: 'Langkah 1', subtitle: 'Profil Diri' },
-          { title: 'Langkah 2', subtitle: 'Upload OCR' },
+          { title: 'Langkah 1', subtitle: 'Profil Pribadi' },
+          { title: 'Langkah 2', subtitle: 'Unggah Tes' },
           { title: 'Langkah 3', subtitle: 'Kesehatan' },
-          { title: 'Langkah 4', subtitle: 'Target & Waktu' },
+          { title: 'Langkah 4', subtitle: 'Target' },
           { title: 'Langkah 5', subtitle: 'Jadwal & Diet' },
-          { title: 'Langkah 6', subtitle: 'Kalender & Plan' },
+          { title: 'Langkah 6', subtitle: 'Eksekusi Plan' },
           { title: 'Langkah 7', subtitle: 'Konfirmasi' }
         ]
       : [
@@ -1466,7 +1492,7 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
           { title: 'Step 3', subtitle: 'Health Snapshot' },
           { title: 'Step 4', subtitle: 'Goal & Time' },
           { title: 'Step 5', subtitle: 'Schedule & Diet' },
-          { title: 'Step 6', subtitle: 'Calendar & Plan' },
+          { title: 'Step 6', subtitle: 'Plan Execution' },
           { title: 'Step 7', subtitle: 'Review & Confirm' }
         ];
 
@@ -1502,96 +1528,159 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
   function render() {
     if (!root) return;
     const isId = state.ui.language === 'id';
+    const currentStepNumber = state.ui.currentStep + 1;
+    const progressPercent = Math.round((currentStepNumber / TOTAL_WIZARD_STEPS) * 100);
+    const stepTitle = getStepTitle(state.ui.currentStep, isId);
+    const persona = resolveVisualPersona(state.personal.sex);
+
     root.innerHTML = `
-      <div class="asha-shell container py-4" data-persona="${state.personalization.visualPersona}">
-        <header class="asha-header shadow-sm">
-          <div class="asha-brand">
-            <div class="asha-brand-title-row">
-              <img src="pics/logo.png" alt="ASHA Logo" class="asha-logo-img" data-role="asha-logo" />
+      <div class="bg-layer" id="app-background" style="background-image: url('${persona.asset}');"></div>
+
+      <div class="main-wrapper" data-persona="${state.personalization.visualPersona}">
+        <!-- Sticky Glassmorphic Header -->
+        <header class="asha-header bg-white bg-opacity-75 backdrop-blur shadow-sm py-2 sticky-top border-bottom border-light">
+          <div class="container d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <div class="d-flex align-items-center">
+              <img src="pics/logo.png" alt="ASHA Logo" height="40" class="me-2 asha-logo-img" data-role="asha-logo" />
               <div>
-                <div class="d-flex align-items-center gap-2">
-                  <span class="asha-logo-badge">ASHA</span>
-                  <h1>ASHA — Personal Health Companion</h1>
-                </div>
-                <p class="asha-cta">${
-                  isId
-                    ? 'Mulai — Hope is the beginning of the plan'
-                    : 'Start — Hope is the beginning of the plan'
-                }</p>
+                <h1 class="h5 mb-0 fw-bold text-asha-blue lh-1">ASHA</h1>
+                <small class="text-muted" style="font-size: 0.72rem;">Personal Health Companion — Hope is the beginning of the plan</small>
               </div>
+              <span class="badge bg-success bg-opacity-10 text-success border border-success ms-3 d-none d-sm-inline-block">
+                100% Memori Runtime
+              </span>
             </div>
-          </div>
-          <div class="asha-controls">
-            <button type="button" class="btn btn-outline-primary btn-sm" data-action="lang-id">${
-              isId ? 'Bahasa Indonesia (Aktif)' : 'Bahasa Indonesia'
-            }</button>
-            <button type="button" class="btn btn-outline-primary btn-sm" data-action="lang-en">${
-              !isId ? 'English (Active)' : 'English'
-            }</button>
-            <button type="button" class="btn btn-outline-primary btn-sm" data-action="clear-session">${
-              isId ? 'Hapus Sesi' : 'Clear Session'
-            }</button>
+            <div class="asha-controls d-flex flex-wrap gap-2">
+              <button type="button" class="btn btn-outline-primary btn-sm" data-action="lang-id">${
+                isId ? 'Bahasa Indonesia (Aktif)' : 'Bahasa Indonesia'
+              }</button>
+              <button type="button" class="btn btn-outline-primary btn-sm" data-action="lang-en">${
+                !isId ? 'English (Active)' : 'English'
+              }</button>
+              <button type="button" class="btn btn-outline-danger btn-sm" data-action="clear-session">${
+                isId ? 'Hapus Sesi' : 'Clear Session'
+              }</button>
+            </div>
           </div>
         </header>
 
-        ${renderWizardNav(isId, 'top')}
+        <div class="asha-shell container">
+          <!-- Hero Welcome Section -->
+          <section class="asha-hero-card p-4 mb-4 text-center mx-auto" style="max-width: 760px;">
+            <img src="pics/logo.png" alt="ASHA Logo" height="56" class="mb-2" />
+            <h2 class="h4 fw-bold text-dark mb-2">${
+              isId ? 'Selamat Datang di ASHA' : 'Welcome to ASHA'
+            }</h2>
+            <p class="text-muted small mb-0">
+              ${
+                isId
+                  ? 'ASHA mengubah informasi kesehatan, aspirasi, jadwal, dan preferensi Anda menjadi <b>Master Prompt</b> yang komprehensif. Mulai bangun rencana kesehatan Anda sekarang.'
+                  : 'ASHA transforms your health snapshot, aspirations, schedule, and preferences into a comprehensive <b>Master Prompt</b>.'
+              }
+            </p>
+          </section>
 
-        <main class="asha-main">
-          <div class="modal-dialog modal-xl modal-dialog-centered asha-wizard-modal-dialog" role="document" data-role="wizard-modal-dialog">
-            <div class="modal-content asha-wizard-modal-content">
-              <div class="modal-header asha-wizard-modal-header">
-                <h5 class="modal-title" id="ashaWizardModalTitle">
-                  ${
-                    isId
-                      ? 'Formulir Perencanaan Kesehatan & Kebugaran Personal'
-                      : 'Personal Health & Fitness Planning Wizard'
-                  }
-                </h5>
-                <span class="badge bg-light text-dark border">
-                  ${isId ? 'Langkah' : 'Step'} ${state.ui.currentStep + 1} / ${TOTAL_WIZARD_STEPS}
-                </span>
-              </div>
-              <div class="modal-body asha-wizard-modal-body">
-                <div id="smartwizard" class="sw-main sw-theme-dots asha-timeline-wizard" data-role="smartwizard">
-                  ${renderTimelineDotStepTabs(isId)}
-                  <div class="sw-container tab-content asha-wizard-step-transition">
-                    <div id="step-${state.ui.currentStep + 1}" class="tab-pane step-content active" style="display: block;">
-                      ${renderStepContent(isId)}
+          ${renderWizardNav(isId, 'top')}
+
+          <!-- Main Content (Modal Dialog Form Wizard) -->
+          <main class="asha-main" id="ashaWizardModal">
+            <div class="modal-dialog modal-xl modal-dialog-centered asha-wizard-modal-dialog" role="document" data-role="wizard-modal-dialog">
+              <div class="modal-content border-0 shadow-lg rounded-4 asha-wizard-modal-content">
+                <!-- Modal Header dengan Step Indicator & Timeline Dot -->
+                <div class="modal-header flex-column align-items-stretch bg-light border-bottom-0 rounded-top-4 pt-4 pb-3 px-4 px-md-5 asha-wizard-modal-header">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="d-flex align-items-center">
+                      <img src="pics/logo.png" alt="Logo" height="30" class="me-2" />
+                      <h5 class="modal-title fw-bold text-asha-blue m-0" id="ashaWizardModalLabel">
+                        ${isId ? 'Perencanaan Kesehatan' : 'Personal Health Planning'}
+                      </h5>
                     </div>
+                    <span class="badge bg-asha-blue text-white rounded-pill px-3">
+                      ${isId ? 'Langkah' : 'Step'} ${currentStepNumber} / ${TOTAL_WIZARD_STEPS}
+                    </span>
+                  </div>
+
+                  <!-- Progress Bar & Text -->
+                  <div class="d-flex justify-content-between text-muted small fw-medium">
+                    <span id="stepLabel">${
+                      isId
+                        ? `Langkah ${currentStepNumber} dari ${TOTAL_WIZARD_STEPS}: ${stepTitle}`
+                        : `Step ${currentStepNumber} of ${TOTAL_WIZARD_STEPS}: ${stepTitle}`
+                    }</span>
+                    <span id="stepPercentage" class="text-asha-blue fw-bold">${progressPercent}%</span>
+                  </div>
+                  <div class="wizard-progress-container">
+                    <div class="wizard-progress-bar" id="wizardProgress" style="width: ${progressPercent}%;"></div>
+                  </div>
+                </div>
+
+                <!-- Modal Body (Form Content) -->
+                <div class="modal-body px-4 px-md-5 py-4 asha-wizard-modal-body" id="wizardModalBody">
+                  <div id="smartwizard" class="sw-main sw-theme-dots asha-timeline-wizard" data-role="smartwizard">
+                    ${renderTimelineDotStepTabs(isId)}
+                    <div class="sw-container tab-content asha-wizard-step-transition">
+                      <div id="step-${currentStepNumber}" class="tab-pane step-content step-container active" style="display: block;">
+                        ${renderStepContent(isId)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Modal Footer Navigation -->
+                <div class="modal-footer justify-content-between border-top-0 px-4 px-md-5 pb-4 pt-0">
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary px-4"
+                    id="btnPrev"
+                    data-action="prev-step"
+                    ${state.ui.currentStep === 0 ? 'disabled' : ''}
+                  >
+                    ${isId ? 'Sebelumnya' : 'Back'}
+                  </button>
+                  <div>
+                    <button
+                      type="button"
+                      class="btn btn-link text-danger text-decoration-none me-3 fw-medium"
+                      id="btnReset"
+                      data-action="start-over"
+                    >
+                      ${isId ? 'Mulai Lagi' : 'Start Over'}
+                    </button>
+                    ${
+                      state.ui.currentStep < TOTAL_WIZARD_STEPS - 1
+                        ? `<button type="button" class="btn btn-asha px-4 fw-medium" id="btnNext" data-action="next-step">${
+                            state.ui.currentStep === TOTAL_WIZARD_STEPS - 2
+                              ? isId
+                                ? 'Review Data'
+                                : 'Review Data'
+                              : isId
+                              ? 'Selanjutnya'
+                              : 'Next'
+                          }</button>`
+                        : ''
+                    }
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-          ${renderWizardNav(isId, 'bottom')}
-          ${renderChatPanel(isId)}
-        </main>
 
-        <footer class="asha-footer shadow-sm">
-          <div class="asha-footer-content">
-            <div class="asha-footer-brand">
-              <div class="d-flex align-items-center gap-2">
-                <img src="pics/logo.png" alt="ASHA Logo" width="28" height="28" class="rounded" />
-                <strong>ASHA — Adaptive Smart Health Assistant (v1.7)</strong>
-              </div>
-              <span>${
-                isId
-                  ? 'Perencanaan Kebugaran & Nutrisi Personal Berbasis Bukti'
-                  : 'Evidence-Informed Personal Fitness & Nutrition Companion'
-              }</span>
-            </div>
-            <div class="asha-footer-meta">
-              <span>${
-                isId
-                  ? 'Privasi 100% In-Memory (Tanpa Penyimpanan Data Kesehatan) • Edukatif & Bukan Diagnosis Medis'
-                  : '100% In-Memory Privacy (Zero Health Data Storage) • Educational & Not Medical Diagnosis'
-              }</span>
-            </div>
+            ${renderWizardNav(isId, 'bottom')}
+            ${renderChatPanel(isId)}
+          </main>
+        </div>
+
+        <!-- Footer -->
+        <footer class="asha-footer bg-white bg-opacity-75 backdrop-blur border-top py-3 mt-auto text-center">
+          <div class="container">
+            <p class="text-muted mb-0 mx-auto" style="font-size: 0.75rem; max-width: 800px;">
+              <strong>Disclaimer Privasi & Medis:</strong> ASHA adalah alat bantu penulisan prompt (100% Memori Runtime). Kami tidak menyimpan data kesehatan Anda di server. Informasi yang dihasilkan oleh AI bukan merupakan diagnosis medis. Selalu konsultasikan dengan profesional kesehatan sebelum memulai program baru.
+            </p>
           </div>
         </footer>
       </div>
     `;
 
+    applyPersonaBackgroundToDom(state.personal.sex);
     attachDomListeners();
   }
 

@@ -17,7 +17,7 @@ describe('Seam 1: Client Application Boundary — Ticket 1 (Walking Skeleton)', 
 
     app.setLanguage('en');
     expect(app.getState().ui.language).toBe('en');
-    expect(document.body.textContent).toContain('Start');
+    expect(document.body.textContent).toContain('Welcome to ASHA');
 
     app.updatePersonal({ age: 34, sex: 'male', height: 172, weight: 74 });
     app.updateGoal({ aspiration: 'build_muscle', target: 'Gain 3 kg lean mass' });
@@ -30,27 +30,40 @@ describe('Seam 1: Client Application Boundary — Ticket 1 (Walking Skeleton)', 
     expect(prompt).toContain('Aspiration: Build muscle');
   });
 
-  it('updates Visual Persona state upon sex selection while keeping background image removed across all pages', () => {
+  it('updates Visual Persona state and dynamic #app-background image upon sex selection matching asha_prompt_generator_v1_7_bootstrap_5.html', () => {
     const app = createAshaApp({ root: document.getElementById('app')! });
 
     expect(app.getState().personalization.visualPersona).toBe('neutral');
-    expect(document.documentElement.style.getPropertyValue('--asha-persona-background')).toBe('none');
-    expect(document.body.style.backgroundImage).toBe('none');
+    expect(document.documentElement.style.getPropertyValue('--asha-persona-background')).toContain(
+      'Modern Activewear Duo in White Studio.png'
+    );
+    expect(document.getElementById('app-background')?.getAttribute('data-persona-asset')).toContain(
+      'Modern Activewear Duo in White Studio.png'
+    );
 
     app.updatePersonal({ sex: 'male' });
     expect(app.getState().personalization.visualPersona).toBe('female_active');
-    expect(document.documentElement.style.getPropertyValue('--asha-persona-background')).toBe('none');
-    expect(document.body.style.backgroundImage).toBe('none');
+    expect(document.documentElement.style.getPropertyValue('--asha-persona-background')).toContain(
+      'Hijabi Athlete in Mauve Activewear.png'
+    );
+    expect(document.getElementById('app-background')?.getAttribute('data-persona-asset')).toContain(
+      'Hijabi Athlete in Mauve Activewear.png'
+    );
 
     app.updatePersonal({ sex: 'female' });
     expect(app.getState().personalization.visualPersona).toBe('male_active');
-    expect(document.documentElement.style.getPropertyValue('--asha-persona-background')).toBe('none');
-    expect(document.body.style.backgroundImage).toBe('none');
+    expect(document.documentElement.style.getPropertyValue('--asha-persona-background')).toContain(
+      'Minimalist Fitness Portrait with Negative Space.png'
+    );
+    expect(document.getElementById('app-background')?.getAttribute('data-persona-asset')).toContain(
+      'Minimalist Fitness Portrait with Negative Space.png'
+    );
 
     app.updatePersonal({ sex: 'unspecified' });
     expect(app.getState().personalization.visualPersona).toBe('neutral');
-    expect(document.documentElement.style.getPropertyValue('--asha-persona-background')).toBe('none');
-    expect(document.body.style.backgroundImage).toBe('none');
+    expect(document.documentElement.style.getPropertyValue('--asha-persona-background')).toContain(
+      'Modern Activewear Duo in White Studio.png'
+    );
   });
 
   it('enforces mandatory Review confirmation gate and resets confirmation when any upstream input changes', () => {
