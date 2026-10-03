@@ -856,22 +856,118 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
       `;
     }
 
-    // Step 7 (index 6): Review & Confirmation Screen (only confirmation shown before prompt generation; Copy Prompt shown once prompt is generated)
+    // Step 7 (index 6): Review & Confirmation Screen
     applyAssumptionsAndPersonalization(state);
     const personaInfo = resolveVisualPersona(state.personal.sex);
     const healthSummary = BIOMARKER_KEYS.map(
       (k) => `${BIOMARKER_LABELS[k]}: ${state.health[k].value ?? 'Not provided'}`
     ).join(' | ');
 
-    const promptPreview = state.confirmation.confirmed
+    const promptReadySection = state.confirmation.confirmed
       ? `
-          <div class="asha-prompt-container">
-            <div class="asha-prompt-toolbar">
-              <button type="button" class="asha-primary-btn asha-copy-prompt-btn" data-action="copy-prompt">
-                ${isId ? 'Copy Prompt (Salin Prompt)' : 'Copy Prompt'}
-              </button>
+          <div class="asha-prompt-ready-popup" data-role="prompt-ready-popup" role="alert" aria-live="polite">
+            <div class="asha-popup-badge">✓</div>
+            <div class="asha-popup-body">
+              <strong>${
+                isId
+                  ? 'Prompt telah siap dan berhasil disalin ke clipboard Anda!'
+                  : 'Prompt is ready and has been copied to your clipboard!'
+              }</strong>
+              <p>${
+                isId
+                  ? 'Silakan pilih salah satu platform AI di bawah ini, lalu tempel (Ctrl+V / Paste) prompt Anda pada kolom chat.'
+                  : 'Select one of the AI platforms below, then paste (Ctrl+V) your prompt into the chat interface.'
+              }</p>
             </div>
-            <pre class="asha-prompt-box">${generateEnglishMasterPrompt(state)}</pre>
+          </div>
+
+          <div class="asha-ai-providers-section">
+            <h3 class="asha-ai-providers-title">${
+              isId
+                ? 'Buka Chat Interface Pilihan Anda:'
+                : 'Open Your Preferred AI Chat Interface:'
+            }</h3>
+            <div class="asha-ai-providers-grid">
+              <a
+                href="https://chatgpt.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="asha-ai-logo-btn"
+                data-ai-provider="chatgpt"
+                title="ChatGPT"
+              >
+                <span class="asha-ai-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                    <path d="M22.28 9.82a5.98 5.98 0 0 0-.52-4.91 6.05 6.05 0 0 0-6.51-2.9A6.07 6.07 0 0 0 4.98 4.18a5.98 5.98 0 0 0-4 2.9 6.05 6.05 0 0 0 .74 7.1 5.98 5.98 0 0 0 .51 4.91 6.05 6.05 0 0 0 6.51 2.9A5.98 5.98 0 0 0 13.26 24a6.06 6.06 0 0 0 5.77-4.21 5.99 5.99 0 0 0 4-2.9 6.06 6.06 0 0 0-.75-7.07zM13.26 22.43a4.48 4.48 0 0 1-2.88-1.04l.14-.08 4.78-2.76a.8.8 0 0 0 .39-.68v-6.74l2.02 1.17a.07.07 0 0 1 .04.05v5.58a4.5 4.5 0 0 1-4.49 4.5zm-9.66-4.13a4.47 4.47 0 0 1-.54-3.01l.14.09 4.78 2.76a.77.77 0 0 0 .78 0l5.84-3.37v2.33a.08.08 0 0 1-.03.06L9.74 19.95a4.5 4.5 0 0 1-6.14-1.65zM2.34 7.9a4.49 4.49 0 0 1 2.37-1.97V11.6a.77.77 0 0 0 .39.68l5.81 3.35-2.02 1.17a.08.08 0 0 1-.07 0l-4.83-2.79A4.5 4.5 0 0 1 2.34 7.9zm16.6 3.86-5.84-3.38 2.02-1.16a.08.08 0 0 1 .07 0l4.83 2.79a4.49 4.49 0 0 1-.68 8.1v-5.67a.79.79 0 0 0-.4-.68zm2.01-3.02-.14-.09-4.77-2.78a.78.78 0 0 0-.79 0L9.41 9.23V6.9a.07.07 0 0 1 .03-.06l4.83-2.79a4.5 4.5 0 0 1 6.68 4.66zM8.31 12.86l-2.02-1.16a.08.08 0 0 1-.04-.06V6.07a4.5 4.5 0 0 1 7.38-3.45l-.14.08-4.78 2.76a.8.8 0 0 0-.39.68zm1.1-2.37 2.6-1.5 2.6 1.5v3l-2.6 1.5-2.6-1.5z"/>
+                  </svg>
+                </span>
+                <span>ChatGPT</span>
+              </a>
+
+              <a
+                href="https://gemini.google.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="asha-ai-logo-btn"
+                data-ai-provider="gemini"
+                title="Google Gemini"
+              >
+                <span class="asha-ai-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                    <path d="M12 2C12 7.52 16.48 12 22 12C16.48 12 12 16.48 12 22C12 16.48 7.52 12 2 12C7.52 12 12 7.52 12 2Z"/>
+                  </svg>
+                </span>
+                <span>Gemini</span>
+              </a>
+
+              <a
+                href="https://claude.ai/"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="asha-ai-logo-btn"
+                data-ai-provider="claude"
+                title="Anthropic Claude"
+              >
+                <span class="asha-ai-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                    <path d="M12 2L14.4 9.2L21.5 6.8L16.3 12.4L22 17.2L14.6 16.1L15.2 23.5L11.2 17.2L5.8 22.4L8.5 15.4L1.5 14.5L7.9 10.8L4.2 4.2L10.6 8.2L12 2Z"/>
+                  </svg>
+                </span>
+                <span>Claude</span>
+              </a>
+
+              <a
+                href="https://grok.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="asha-ai-logo-btn"
+                data-ai-provider="grok"
+                title="xAI Grok"
+              >
+                <span class="asha-ai-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                    <path d="M3 21L21 3M8 3H21V16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                  </svg>
+                </span>
+                <span>Grok</span>
+              </a>
+
+              <a
+                href="https://copilot.microsoft.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="asha-ai-logo-btn"
+                data-ai-provider="copilot"
+                title="Microsoft Copilot"
+              >
+                <span class="asha-ai-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                    <path d="M7.5 4C5.01 4 3 6.01 3 8.5v2.25C3 12.55 4.45 14 6.25 14h2.5c1.24 0 2.25-1.01 2.25-2.25V8.5C11 6.01 8.99 4 6.5 4h1zm9 0c2.49 0 4.5 2.01 4.5 4.5v2.25c0 1.8-1.45 3.25-3.25 3.25h-2.5C14.01 14 13 12.99 13 11.75V8.5C13 6.01 15.01 4 17.5 4h-1zM6.5 15.5C4.57 15.5 3 17.07 3 19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2 0-1.93-1.57-3.5-3.5-3.5h-11z"/>
+                  </svg>
+                </span>
+                <span>Copilot</span>
+              </a>
+            </div>
           </div>
         `
       : '';
@@ -931,7 +1027,7 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
           }</span>
         </label>
 
-        ${promptPreview}
+        ${promptReadySection}
       </section>
     `;
   }
@@ -1002,16 +1098,28 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
   }
 
   function renderWizardNav(isId: boolean, position: 'top' | 'bottom'): string {
+    const isFinalStep = state.ui.currentStep === TOTAL_WIZARD_STEPS - 1;
+    const buttonsHtml = isFinalStep
+      ? `
+          <button type="button" data-action="prev-step">${isId ? 'Sebelumnya' : 'Back'}</button>
+          <button type="button" class="asha-primary-btn" data-action="start-over">${
+            isId ? 'Mulai Lagi' : 'Start Over'
+          }</button>
+        `
+      : `
+          <button type="button" data-action="prev-step" ${
+            state.ui.currentStep === 0 ? 'disabled' : ''
+          }>${isId ? 'Sebelumnya' : 'Back'}</button>
+          <button type="button" class="asha-primary-btn" data-action="next-step">${
+            isId ? 'Selanjutnya' : 'Next'
+          }</button>
+        `;
+
     return `
       <nav class="asha-wizard-nav asha-wizard-nav-${position}" aria-label="Wizard Progress ${position}">
         <span>${isId ? 'Langkah' : 'Step'} ${state.ui.currentStep + 1} / ${TOTAL_WIZARD_STEPS}</span>
         <div class="asha-step-buttons">
-          <button type="button" data-action="prev-step" ${
-            state.ui.currentStep === 0 ? 'disabled' : ''
-          }>${isId ? 'Sebelumnya' : 'Back'}</button>
-          <button type="button" class="asha-primary-btn" data-action="next-step" ${
-            state.ui.currentStep >= TOTAL_WIZARD_STEPS - 1 ? 'disabled' : ''
-          }>${isId ? 'Selanjutnya' : 'Next'}</button>
+          ${buttonsHtml}
         </div>
       </nav>
     `;
@@ -1093,6 +1201,9 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
     });
     root.querySelectorAll('[data-action="next-step"]').forEach((btn) => {
       btn.addEventListener('click', () => nextStep());
+    });
+    root.querySelectorAll('[data-action="start-over"]').forEach((btn) => {
+      btn.addEventListener('click', () => clearSession());
     });
 
     root.querySelector('[data-field="sex"]')?.addEventListener('change', (e) => {
@@ -1616,6 +1727,9 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
     }
     state.confirmation.confirmed = confirmed;
     state.personalization.confirmed = confirmed;
+    if (confirmed) {
+      void copyMasterPromptToClipboard();
+    }
     render();
   }
 

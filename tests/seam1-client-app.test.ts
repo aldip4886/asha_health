@@ -408,7 +408,7 @@ describe('Seam 1: Client Application Boundary — Ticket 5 (Dual .ics Calendars 
     expect(snapshotMd).toContain('Rencana v1.0 dalam Bahasa Indonesia siap dijalankan.');
   });
 
-  it('renders interactive step-by-step wizard navigation, shows Step 2 OCR upload before Step 3 Health Snapshot, and shows only confirmation without extra buttons on Step 7', () => {
+  it('renders interactive step-by-step wizard navigation, shows Step 2 OCR upload before Step 3 Health Snapshot, replaces Step 7 navigation with Sebelumnya & Mulai Lagi, hides prompt text while copying to clipboard with a popup notice, and renders ChatGPT, Gemini, Claude, Grok, and Copilot logo links', () => {
     const root = document.getElementById('app')!;
     const app = createAshaApp({ root });
 
@@ -425,27 +425,58 @@ describe('Seam 1: Client Application Boundary — Ticket 5 (Dual .ics Calendars 
     expect(app.getState().ui.currentStep).toBe(2);
     expect(root.querySelector('[data-biomarker="bloodPressure"]')).not.toBeNull();
 
-    // Jump to Review step (step 6 / Bagian 7)
+    // Jump to Review step (step 6 / Langkah 7/7)
     app.goToStep(6);
     expect(root.textContent).toContain(
       'Saya telah memeriksa informasi dan asumsi yang akan digunakan untuk membuat prompt.'
     );
 
-    // Bagian 7 must ONLY display the confirmation before confirming (0 buttons)
+    // On Step 7/7, standard next-step navigation button must be replaced by "Sebelumnya" and "Mulai Lagi"
+    expect(root.querySelector('[data-action="next-step"]')).toBeNull();
+    expect(root.querySelectorAll('[data-action="prev-step"]').length).toBeGreaterThan(0);
+    const startOverBtns = root.querySelectorAll('[data-action="start-over"]');
+    expect(startOverBtns.length).toBeGreaterThan(0);
+    expect(startOverBtns[0].textContent).toContain('Mulai Lagi');
+
+    // Before confirming: no popup and no prompt box displayed
     const confirmCheckbox = root.querySelector(
       'input[type="checkbox"][data-action="toggle-confirm"]'
     ) as HTMLInputElement;
     expect(confirmCheckbox).not.toBeNull();
-    expect(root.querySelectorAll('.asha-review-card button').length).toBe(0);
+    expect(root.querySelector('.asha-prompt-box')).toBeNull();
+    expect(root.querySelector('[data-role="prompt-ready-popup"]')).toBeNull();
 
-    // Once confirmed and prompt is generated, show the Copy Prompt button
+    // Once confirmed: prompt must NOT be displayed on screen, popup message appears, and 5 AI logo links are rendered
     app.setConfirmed(true);
-    const copyPromptBtn = root.querySelector(
-      '.asha-review-card button[data-action="copy-prompt"]'
-    ) as HTMLButtonElement;
-    expect(copyPromptBtn).not.toBeNull();
-    expect(root.querySelectorAll('.asha-review-card button').length).toBe(1);
-    expect(root.textContent).toContain('SELURUH RESPONS HARUS MENGGUNAKAN BAHASA INDONESIA.');
+    expect(root.querySelector('.asha-prompt-box')).toBeNull();
+    expect(root.textContent).not.toContain('SELURUH RESPONS HARUS MENGGUNAKAN BAHASA INDONESIA.');
+
+    const popup = root.querySelector('[data-role="prompt-ready-popup"]');
+    expect(popup).not.toBeNull();
+    expect(popup?.textContent).toMatch(/prompt telah siap/i);
+
+    // Verify ChatGPT, Gemini, Claude, Grok, and Copilot logo links
+    const chatgptLink = root.querySelector('[data-ai-provider="chatgpt"]') as HTMLAnchorElement;
+    const geminiLink = root.querySelector('[data-ai-provider="gemini"]') as HTMLAnchorElement;
+    const claudeLink = root.querySelector('[data-ai-provider="claude"]') as HTMLAnchorElement;
+    const grokLink = root.querySelector('[data-ai-provider="grok"]') as HTMLAnchorElement;
+    const copilotLink = root.querySelector('[data-ai-provider="copilot"]') as HTMLAnchorElement;
+
+    expect(chatgptLink).not.toBeNull();
+    expect(chatgptLink.href).toContain('chatgpt.com');
+    expect(geminiLink).not.toBeNull();
+    expect(geminiLink.href).toContain('gemini.google.com');
+    expect(claudeLink).not.toBeNull();
+    expect(claudeLink.href).toContain('claude.ai');
+    expect(grokLink).not.toBeNull();
+    expect(grokLink.href).toContain('grok.com');
+    expect(copilotLink).not.toBeNull();
+    expect(copilotLink.href).toContain('copilot.microsoft.com');
+
+    // Clicking "Mulai Lagi" resets session and returns to Step 1 (index 0)
+    (startOverBtns[0] as HTMLButtonElement).click();
+    expect(app.getState().ui.currentStep).toBe(0);
+    expect(app.getState().confirmation.confirmed).toBe(false);
   });
 
   it('provides the 6 specified ethnic group options (Asian, Kaukasian, American, Latin, Indian, Other) and progressively reveals Aspiration sub-targets before unlocking Timeframe in Step 4', () => {
@@ -640,6 +671,7 @@ describe('Seam 1: Client Application Boundary — Ticket 5 (Dual .ics Calendars 
     expect(prompt).toMatch(/repetisi/i);
     expect(prompt).toMatch(/cara melakukan gerakan/i);
     expect(prompt).toMatch(/contoh.*gambar gerakan/i);
+    expect(prompt).toMatch(/darebee\.com/i);
   });
 });
 

@@ -208,9 +208,9 @@ export function generateEnglishMasterPrompt(state: AshaAppState): string {
     '  3. Otot yang dilatih (otot utama dan otot pendukung);',
     '  4. Repetisi, jumlah set, tempo, dan waktu istirahat antar set;',
     '  5. Cara melakukan gerakan langkah demi langkah (posisi awal, pelaksanaan gerakan, pola pernapasan, kesalahan umum yang harus dihindari, dan tips keamanan);',
-    '  6. Contoh (gambar gerakan / ilustrasi visual / referensi gambar gerakan yang jelas sesuai mode referensi visual).',
+    '  6. Contoh (gambar gerakan): Ambil dan sertakan contoh gambar gerakan / tautan ilustrasi visual langsung dari situs referensi latihan terpercaya seperti https://darebee.com (misalnya pustaka gerakan DAREBEE Video/Illustrated Exercise Library di `https://darebee.com/exercises/` atau workout visual card DAREBEE yang relevan) agar pengguna dapat melihat contoh visual gerakan secara jelas.',
     '- For each daily meal plan include: daily meals for every single day across the target period, food choices, portion guidance, estimated energy, protein, carbohydrates, fats, fiber, hydration, meal timing, and diet compatibility.',
-    `- GENERATIVE AI CALENDAR (.ICS) OUTPUT: Kalender (.ics) dihasilkan langsung oleh Generative AI (Gemini) setelah prompt ini dimasukkan ke chat interface. Sediakan blok kode file kalender (.ics) standar RFC 5545 yang kompatibel penuh dengan ${calendarLabel} (dimulai pada tanggal ${
+    `- GENERATIVE AI CALENDAR (.ICS) OUTPUT: Kalender (.ics) dihasilkan langsung oleh Generative AI setelah prompt ini dimasukkan ke chat interface. Sediakan blok kode file kalender (.ics) standar RFC 5545 yang kompatibel penuh dengan ${calendarLabel} (dimulai pada tanggal ${
       state.planning.startDate ?? 'mulai rencana'
     }, lengkap dengan VALARM pengingat ${state.planning.reminderMinutesBefore} menit sebelum jadwal) untuk seluruh jadwal latihan dan makan harian selama ${durationWeeks} minggu.`,
     '- Include recovery habits, monitoring indicators, and clear safety disclaimers (ASHA is educational, not a medical diagnosis or prescription; distinguish personal targets from medical targets).',
@@ -221,7 +221,7 @@ export function generateEnglishMasterPrompt(state: AshaAppState): string {
     '☐ Relevant physiological factors considered',
     '☐ Unknown physiological states not invented',
     '☐ Detailed day-by-day Training & Meal Plan covers full target timeframe',
-    '☐ Detailed exercise guide included (fungsi/manfaat gerakan, otot yang dilatih, repetisi, cara melakukan gerakan, contoh/gambar gerakan)',
+    '☐ Detailed exercise guide included (fungsi/manfaat gerakan, otot yang dilatih, repetisi, cara melakukan gerakan, contoh/gambar gerakan dari darebee.com)',
     '☐ Generative AI outputs valid .ics calendar blocks for selected calendar platform',
     '☐ Equipment respected',
     '☐ Diet respected',
