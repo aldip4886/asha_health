@@ -351,6 +351,14 @@ input[type="checkbox"]:checked {
   background: #ffffff;
 }
 
+#wizardModalBody::before,
+#wizardModalBody::after,
+#wizardModalBody *::before,
+#wizardModalBody *::after {
+  content: none !important;
+  display: none !important;
+}
+
 /* Timeline with Dot Indicator (#smartwizard.sw-main.sw-theme-dots) */
 #smartwizard.sw-main.sw-theme-dots,
 #smartwizard.asha-timeline-wizard {
@@ -377,41 +385,6 @@ input[type="checkbox"]:checked {
   min-width: 105px;
   text-align: center;
   margin: 0;
-}
-
-.asha-timeline-step::before,
-.asha-timeline-step::after {
-  content: '';
-  position: absolute;
-  top: 10px;
-  height: 3px;
-  background: #dee2e6;
-  z-index: 1;
-  transition: background-color 0.25s ease;
-}
-
-.asha-timeline-step::before {
-  left: 0;
-  width: 50%;
-}
-
-.asha-timeline-step::after {
-  right: 0;
-  width: 50%;
-}
-
-.asha-timeline-step:first-child::before {
-  display: none;
-}
-
-.asha-timeline-step:last-child::after {
-  display: none;
-}
-
-.asha-timeline-step.done::before,
-.asha-timeline-step.done::after,
-.asha-timeline-step.active::before {
-  background: var(--blue-asha);
 }
 
 .asha-timeline-link,
@@ -446,14 +419,6 @@ input[type="checkbox"]:checked {
   background: var(--blue-asha);
   border-color: var(--blue-asha);
   box-shadow: 0 2px 6px rgba(11, 79, 140, 0.25);
-}
-
-.asha-timeline-step.done .asha-timeline-dot::after {
-  content: '';
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  background: #ffffff;
 }
 
 .asha-timeline-step.active .asha-timeline-dot {
