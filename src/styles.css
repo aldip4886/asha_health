@@ -453,20 +453,24 @@ button:disabled {
 }
 
 .asha-popup-quote {
-  margin: 0.35rem 0 0 0;
-  padding: 0.55rem 0.85rem;
-  border-left: 3px solid var(--asha-primary);
-  background: rgba(255, 255, 255, 0.85);
-  border-radius: 0 8px 8px 0;
+  margin: 0.5rem auto 0 auto;
+  padding: 0.7rem 1.15rem;
+  border-top: 2px solid var(--asha-primary);
+  border-bottom: 2px solid var(--asha-primary);
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 10px;
   font-style: italic;
   color: var(--asha-primary-dark);
   font-size: 0.92rem;
+  text-align: center;
+  width: 100%;
 }
 
 .asha-ai-providers-section {
   margin-top: 0.5rem;
   padding-top: 0.85rem;
   border-top: 1px solid var(--asha-border);
+  text-align: center;
 }
 
 .asha-ai-providers-title {
@@ -474,16 +478,14 @@ button:disabled {
   font-weight: 700;
   margin-bottom: 0.75rem;
   color: var(--asha-primary-dark);
-}
-
-.asha-ics-downloads-section {
-  padding-top: 0.85rem;
-  border-top: 1px solid var(--asha-border);
+  text-align: center;
 }
 
 .asha-ai-providers-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
   gap: 0.75rem;
 }
 

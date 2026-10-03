@@ -969,22 +969,21 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
                 data-action="close-popup"
                 title="${isId ? 'Tutup Pop-up' : 'Close Pop-up'}"
               ></button>
-              <div class="d-flex align-items-start gap-3">
+              <div class="d-flex align-items-center justify-content-center text-center gap-3">
                 <div class="asha-popup-badge">✓</div>
-                <div class="asha-popup-body flex-grow-1">
+                <div class="asha-popup-body">
                   <strong class="asha-popup-greeting">Selamat ${displayName}, prompt kamu sudah siap!</strong>
-                  <p class="asha-popup-instruction">Silakan klik AI Chat Interface favoritmu untuk membuat plan.</p>
-                  <blockquote class="asha-popup-quote" data-role="motivational-quote">“${quoteText}”</blockquote>
+                  <p class="asha-popup-instruction mb-0">Silakan klik AI Chat Interface favoritmu untuk membuat plan.</p>
                 </div>
               </div>
 
-              <div class="asha-ai-providers-section">
-                <h3 class="asha-ai-providers-title">${
+              <div class="asha-ai-providers-section text-center">
+                <h3 class="asha-ai-providers-title text-center">${
                   isId
                     ? 'Buka Chat Interface Pilihan Anda:'
                     : 'Open Your Preferred AI Chat Interface:'
                 }</h3>
-                <div class="asha-ai-providers-grid">
+                <div class="asha-ai-providers-grid justify-content-center">
                   <a
                     href="https://chatgpt.com/"
                     target="_blank"
@@ -1065,31 +1064,22 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
                     <span>Copilot</span>
                   </a>
                 </div>
-              </div>
 
-              <div class="asha-ics-download-section mt-3 pt-3 border-top">
-                <h4 class="asha-ai-providers-title mb-2">${
-                  isId
-                    ? 'Unduh File Kalender (.ics) Dasar Anda:'
-                    : 'Download Your Baseline Calendar (.ics) Files:'
-                }</h4>
-                <div class="d-flex flex-wrap gap-2">
+                <div class="asha-new-plan-btn-wrapper mt-3 text-center">
                   <button
                     type="button"
-                    class="btn btn-outline-primary btn-sm"
-                    data-action="download-training-ics"
+                    class="btn btn-primary asha-primary-btn rounded-pill px-4"
+                    data-action="start-over"
+                    data-role="popup-new-plan-btn"
                   >
-                    📅 ${isId ? 'Unduh My-Training-Plan.ics' : 'Download My-Training-Plan.ics'}
-                  </button>
-                  <button
-                    type="button"
-                    class="btn btn-outline-primary btn-sm"
-                    data-action="download-diet-ics"
-                  >
-                    🥗 ${isId ? 'Unduh My-Diet-Plan.ics' : 'Download My-Diet-Plan.ics'}
+                    ${isId ? 'Susun Rencana Baru' : 'Susun Rencana Baru'}
                   </button>
                 </div>
               </div>
+
+              <blockquote class="asha-popup-quote text-center" data-role="motivational-quote">
+                “${quoteText}”
+              </blockquote>
             </div>
           </div>
         `
