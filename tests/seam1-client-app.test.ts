@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeEach } from 'vitest';
-import { createAshaApp } from '../src/app';
+import { createAshaApp, getDefaultTomorrowStartDate } from '../src/app';
 
 describe('Seam 1: Client Application Boundary — Ticket 1 (Walking Skeleton)', () => {
   beforeEach(() => {
@@ -699,9 +699,28 @@ describe('Seam 1: Client Application Boundary — Ticket 5 (Dual .ics Calendars 
       'input[type="date"][data-field="startDate"]'
     ) as HTMLInputElement;
     expect(startDateInput).not.toBeNull();
+    // Default startDate must be tomorrow (+1 day after today)
+    const expectedTomorrow = getDefaultTomorrowStartDate();
+    expect(app.getState().planning.startDate).toBe(expectedTomorrow);
+    expect(startDateInput.value).toBe(expectedTomorrow);
+
     startDateInput.value = '2026-10-05';
     startDateInput.dispatchEvent(new Event('change'));
     expect(app.getState().planning.startDate).toBe('2026-10-05');
+
+    // Target timeframe (durationWeeks) cannot be less than 1
+    app.goToStep(3);
+    app.updateGoal({ aspiration: 'improve_mobility' });
+    const durationInput = root.querySelector(
+      'input[type="number"][data-field="durationWeeks"]'
+    ) as HTMLInputElement;
+    expect(durationInput).not.toBeNull();
+    expect(durationInput.getAttribute('min')).toBe('1');
+
+    app.updateTimeframe(0);
+    expect(app.getState().timeframe.durationWeeks).toBe(1);
+    app.updateTimeframe(-4);
+    expect(app.getState().timeframe.durationWeeks).toBe(1);
 
     // Verify Master Prompt instructs Gemini to generate detailed daily training & meal plan, exercise movement details, start date, and .ics calendar
     app.updateTimeframe(6);

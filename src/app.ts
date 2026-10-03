@@ -142,7 +142,16 @@ function createInitialHealthSnapshot(): HealthSnapshot {
   return snapshot;
 }
 
+export function getDefaultTomorrowStartDate(now: Date = new Date()): string {
+  const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  const yyyy = tomorrow.getFullYear();
+  const mm = String(tomorrow.getMonth() + 1).padStart(2, '0');
+  const dd = String(tomorrow.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 export function createInitialState(): AshaAppState {
+  const defaultStartDate = getDefaultTomorrowStartDate();
   return {
     ui: {
       language: 'id',
@@ -220,7 +229,7 @@ export function createInitialState(): AshaAppState {
       exerciseVisualMode: 'external_reference',
       reminderMinutesBefore: 30,
       calendarProvider: 'google',
-      startDate: null
+      startDate: defaultStartDate
     },
     exerciseGuide: {
       visualMode: 'external_reference'
@@ -229,7 +238,7 @@ export function createInitialState(): AshaAppState {
       reminderMinutesBefore: 30,
       previewOpen: false,
       provider: 'google',
-      startDate: null
+      startDate: defaultStartDate
     },
     personalization: {
       visualPersona: 'neutral',
@@ -444,7 +453,7 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
         <div class="asha-timeframe-stage mt-3">
           <label class="form-label">
             <span>${isId ? 'Target Waktu / Durasi Rencana (Minggu)' : 'Target Timeframe (Weeks)'}</span>
-            <input type="number" class="form-control" data-field="durationWeeks" value="${
+            <input type="number" min="1" class="form-control" data-field="durationWeeks" value="${
               state.timeframe.durationWeeks ?? ''
             }" placeholder="8" />
           </label>
@@ -1985,9 +1994,13 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
 
   function updateTimeframe(durationWeeks: number | null) {
     markDirty();
+    const sanitizedWeeks =
+      durationWeeks !== null && !Number.isNaN(durationWeeks)
+        ? Math.max(1, Math.floor(durationWeeks))
+        : null;
     state.timeframe = {
-      durationWeeks,
-      fieldState: durationWeeks !== null ? 'provided' : 'missing'
+      durationWeeks: sanitizedWeeks,
+      fieldState: sanitizedWeeks !== null ? 'provided' : 'missing'
     };
     render();
   }
