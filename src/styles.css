@@ -1,0 +1,142 @@
+:root {
+  --asha-persona-background: url("pics/Minimalist Fitness Portrait with Negative Space.png");
+  --asha-primary: #0f766e;
+  --asha-surface: rgba(255, 255, 255, 0.92);
+  --asha-text: #0f172a;
+  --asha-muted: #475569;
+  --asha-border: #cbd5e1;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: var(--asha-text);
+  background-color: #ffffff;
+  background-image: var(--asha-persona-background);
+  background-repeat: no-repeat;
+  background-position: right bottom;
+  background-size: contain;
+  transition: opacity 380ms ease-in-out, background-image 380ms ease-in-out;
+}
+
+body.persona-transition {
+  opacity: 0.92;
+}
+
+.asha-shell {
+  max-width: 820px;
+  padding: 1.5rem;
+  min-height: 100vh;
+}
+
+.asha-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  background: var(--asha-surface);
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  border: 1px solid var(--asha-border);
+  margin-bottom: 1rem;
+}
+
+.asha-wizard-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--asha-surface);
+  padding: 0.75rem 1.25rem;
+  border-radius: 10px;
+  border: 1px solid var(--asha-border);
+  margin-bottom: 1rem;
+}
+
+.asha-card {
+  background: var(--asha-surface);
+  backdrop-filter: blur(8px);
+  padding: 1.5rem;
+  border-radius: 14px;
+  border: 1px solid var(--asha-border);
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.05);
+  margin-bottom: 1.25rem;
+}
+
+.asha-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.92rem;
+  font-weight: 500;
+}
+
+input[type="text"],
+input[type="number"],
+select {
+  padding: 0.55rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--asha-border);
+  font-size: 0.95rem;
+}
+
+button {
+  padding: 0.55rem 0.95rem;
+  border-radius: 8px;
+  border: 1px solid var(--asha-border);
+  background: #ffffff;
+  color: var(--asha-text);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+button.asha-primary-btn {
+  background: var(--asha-primary);
+  color: #ffffff;
+  border-color: var(--asha-primary);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.asha-review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 1rem;
+}
+
+.asha-prompt-box {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #f8fafc;
+  border: 1px solid var(--asha-border);
+  border-radius: 8px;
+  white-space: pre-wrap;
+  font-size: 0.85rem;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+  body {
+    background-size: 65% auto;
+  }
+  .asha-shell {
+    padding: 0.85rem;
+  }
+}
