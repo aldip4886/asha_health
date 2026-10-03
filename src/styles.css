@@ -314,40 +314,6 @@ input[type="checkbox"]:checked {
   box-shadow: 0 10px 30px rgba(11, 79, 140, 0.12);
 }
 
-/* Floating Navigation Bars */
-.asha-wizard-nav,
-.asha-floating-nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(10px);
-  color: var(--blue-asha);
-  font-weight: 600;
-  padding: 0.65rem 1.25rem;
-  border-radius: 999px;
-  border: 1px solid rgba(11, 79, 140, 0.25);
-  box-shadow: 0 8px 24px rgba(11, 79, 140, 0.14);
-  margin-bottom: 1rem;
-  z-index: 1020;
-}
-
-.asha-floating-nav-top {
-  position: sticky;
-  top: 4.25rem;
-}
-
-.asha-wizard-nav-bottom,
-.asha-floating-nav-bottom {
-  position: fixed;
-  bottom: 1rem;
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(960px, calc(100% - 2rem));
-  margin: 0;
-  z-index: 1030;
-}
-
 .asha-step-buttons {
   display: flex;
   align-items: center;

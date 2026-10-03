@@ -1425,34 +1425,6 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
     `;
   }
 
-  function renderWizardNav(isId: boolean, position: 'top' | 'bottom'): string {
-    const isFinalStep = state.ui.currentStep === TOTAL_WIZARD_STEPS - 1;
-    const buttonsHtml = isFinalStep
-      ? `
-          <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-action="prev-step">${isId ? 'Sebelumnya' : 'Back'}</button>
-          <button type="button" class="btn btn-asha asha-primary-btn rounded-pill px-3" data-action="start-over">${
-            isId ? 'Mulai Lagi' : 'Start Over'
-          }</button>
-        `
-      : `
-          <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-action="prev-step" ${
-            state.ui.currentStep === 0 ? 'disabled' : ''
-          }>${isId ? 'Sebelumnya' : 'Back'}</button>
-          <button type="button" class="btn btn-asha asha-primary-btn rounded-pill px-3" data-action="next-step">${
-            isId ? 'Selanjutnya' : 'Next'
-          }</button>
-        `;
-
-    return `
-      <nav class="asha-wizard-nav asha-wizard-nav-${position} asha-floating-nav asha-floating-nav-${position}" data-role="floating-nav" aria-label="Wizard Progress ${position}">
-        <span class="badge bg-asha-blue text-white fs-6 rounded-pill px-3">${isId ? 'Langkah' : 'Step'} ${state.ui.currentStep + 1} / ${TOTAL_WIZARD_STEPS}</span>
-        <div class="asha-step-buttons">
-          ${buttonsHtml}
-        </div>
-      </nav>
-    `;
-  }
-
   function getStepTitle(stepIdx: number, isId: boolean): string {
     const titlesId = [
       'Profil Pribadi',
@@ -1580,8 +1552,6 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
             </p>
           </section>
 
-          ${renderWizardNav(isId, 'top')}
-
           <!-- Main Content (Modal Dialog Form Wizard) -->
           <main class="asha-main" id="ashaWizardModal">
             <div class="modal-dialog modal-xl modal-dialog-centered asha-wizard-modal-dialog" role="document" data-role="wizard-modal-dialog">
@@ -1664,7 +1634,6 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
               </div>
             </div>
 
-            ${renderWizardNav(isId, 'bottom')}
             ${renderChatPanel(isId)}
           </main>
         </div>

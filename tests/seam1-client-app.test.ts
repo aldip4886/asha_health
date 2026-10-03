@@ -581,7 +581,7 @@ describe('Seam 1: Client Application Boundary — Ticket 5 (Dual .ics Calendars 
     expect(app.getState().goal.target).toContain('< 100 mg/dL');
   });
 
-  it('renders Step 5 with time picker, Select All training days greying out rest days, Training Types checkboxes before Equipment, Treadmil / Walking Pad & Tidak Ada (Gunakan Bodyweight) equipment options, top & bottom navigation, and professional Header/Footer', () => {
+  it('renders Step 5 with time picker, Select All training days greying out rest days, Training Types checkboxes before Equipment, Treadmil / Walking Pad & Tidak Ada (Gunakan Bodyweight) equipment options, modal footer navigation, and professional Header/Footer', () => {
     const root = document.getElementById('app')!;
     const app = createAshaApp({ root });
 
@@ -589,13 +589,14 @@ describe('Seam 1: Client Application Boundary — Ticket 5 (Dual .ics Calendars 
     expect(root.querySelector('header.asha-header')).not.toBeNull();
     expect(root.querySelector('footer.asha-footer')).not.toBeNull();
 
-    // Top and bottom navigation bars must exist on every step
-    expect(root.querySelectorAll('.asha-wizard-nav').length).toBe(2);
-    const bottomNextBtn = root.querySelector(
-      '.asha-wizard-nav-bottom [data-action="next-step"]'
+    // Floating top/bottom wizard nav bars must be removed; navigation uses modal-footer
+    expect(root.querySelectorAll('.asha-wizard-nav').length).toBe(0);
+    expect(root.querySelectorAll('.asha-floating-nav').length).toBe(0);
+    const modalNextBtn = root.querySelector(
+      '.modal-footer [data-action="next-step"]'
     ) as HTMLButtonElement;
-    expect(bottomNextBtn).not.toBeNull();
-    bottomNextBtn.click();
+    expect(modalNextBtn).not.toBeNull();
+    modalNextBtn.click();
     expect(app.getState().ui.currentStep).toBe(1);
 
     // Navigate to Step 5 (index 4)
@@ -980,10 +981,10 @@ describe('Seam 1: Client Application Boundary — Ticket 5 (Dual .ics Calendars 
     confirmCheck.checked = true;
     confirmCheck.dispatchEvent(new Event('change'));
 
-    // Verify floating navigation bars exist
-    expect(root.querySelectorAll('[data-role="floating-nav"].asha-floating-nav').length).toBe(2);
-    expect(root.querySelector('.asha-floating-nav-top')).not.toBeNull();
-    expect(root.querySelector('.asha-floating-nav-bottom')).not.toBeNull();
+    // Verify floating navigation bars are removed
+    expect(root.querySelectorAll('[data-role="floating-nav"].asha-floating-nav').length).toBe(0);
+    expect(root.querySelector('.asha-floating-nav-top')).toBeNull();
+    expect(root.querySelector('.asha-floating-nav-bottom')).toBeNull();
 
     // Verify floating popup overlay and greeting with nickname and random quote
     const floatingOverlayEl = root.querySelector(
