@@ -605,7 +605,7 @@ describe('Seam 1: Client Application Boundary — Ticket 5 (Dual .ics Calendars 
     expect(root.querySelector('[data-field="fastingProtocol"]')).not.toBeNull();
     expect(root.querySelector('[data-field="eatingWindow"]')).not.toBeNull();
 
-    // Navigate to Step 6 (index 5) and verify Calendar Provider options (Google, Outlook, Apple)
+    // Navigate to Step 6 (index 5) and verify Calendar Provider options (Google, Outlook, Apple) and Plan Start Date date picker
     app.goToStep(5);
     const calSelect = root.querySelector(
       'select[data-field="calendarProvider"]'
@@ -618,14 +618,29 @@ describe('Seam 1: Client Application Boundary — Ticket 5 (Dual .ics Calendars 
     calSelect.dispatchEvent(new Event('change'));
     expect(app.getState().planning.calendarProvider).toBe('apple');
 
-    // Verify Master Prompt instructs Gemini to generate detailed daily training & meal plan across target period and .ics calendar
+    const startDateInput = root.querySelector(
+      'input[type="date"][data-field="startDate"]'
+    ) as HTMLInputElement;
+    expect(startDateInput).not.toBeNull();
+    startDateInput.value = '2026-10-05';
+    startDateInput.dispatchEvent(new Event('change'));
+    expect(app.getState().planning.startDate).toBe('2026-10-05');
+
+    // Verify Master Prompt instructs Gemini to generate detailed daily training & meal plan, exercise movement details, start date, and .ics calendar
     app.updateTimeframe(6);
     app.setConfirmed(true);
     const prompt = app.getMasterPrompt();
     expect(prompt).toContain('Apple');
+    expect(prompt).toContain('2026-10-05');
     expect(prompt).toContain('.ics');
     expect(prompt).toMatch(/setiap harinya|day-by-day/i);
     expect(prompt).toContain('6 weeks');
+    expect(prompt).toMatch(/fungsi.*manfaat gerakan/i);
+    expect(prompt).toMatch(/otot yang dilatih/i);
+    expect(prompt).toMatch(/repetisi/i);
+    expect(prompt).toMatch(/cara melakukan gerakan/i);
+    expect(prompt).toMatch(/contoh.*gambar gerakan/i);
   });
 });
+
 

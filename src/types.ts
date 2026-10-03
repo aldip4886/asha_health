@@ -183,6 +183,7 @@ export interface PlanningState {
   exerciseVisualMode: ExerciseVisualMode;
   reminderMinutesBefore: number;
   calendarProvider?: CalendarProvider;
+  startDate?: string | null;
 }
 
 export interface ExerciseGuideState {
@@ -193,6 +194,7 @@ export interface CalendarState {
   reminderMinutesBefore: number;
   previewOpen: boolean;
   provider?: CalendarProvider;
+  startDate?: string | null;
 }
 
 export interface ConditionalQuestionItem {

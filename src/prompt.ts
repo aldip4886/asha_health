@@ -164,7 +164,7 @@ export function generateEnglishMasterPrompt(state: AshaAppState): string {
     'HARD EQUIPMENT RULE: Never prescribe an exercise requiring equipment the user does not have.',
     `- Diet: ${dietFormatted}`,
     '',
-    '## 6. PLAN TYPE, INTEGRATION, CALENDAR PLATFORM & EXERCISE VISUAL PREFERENCES',
+    '## 6. PLAN TYPE, INTEGRATION, START DATE, CALENDAR PLATFORM & EXERCISE VISUAL PREFERENCES',
     `- Plan Type: ${PLAN_TYPE_LABELS[planType]}`,
     `- Integration Mode: ${integrationMode}`,
     ...(planType === 'training_and_meal' && integrationMode === 'optimize_together'
@@ -172,6 +172,9 @@ export function generateEnglishMasterPrompt(state: AshaAppState): string {
           'INTEGRATED REQUIREMENT: Jangan menyusun rencana latihan dan rencana makan sebagai dua rencana yang berdiri sendiri. Optimalkan keduanya secara bersama-sama berdasarkan tujuan, beban latihan, waktu latihan, pemulihan, kebutuhan energi, dan pola diet pengguna.'
         ]
       : []),
+    `- Plan Start Date: ${
+      state.planning.startDate ?? 'Not provided (use upcoming Monday or current date)'
+    }`,
     `- Exercise Visual Reference Mode: ${VISUAL_MODE_LABELS[state.planning.exerciseVisualMode]}`,
     `- Target Calendar Platform: ${calendarLabel} (Reminder: ${state.planning.reminderMinutesBefore} minutes before event)`,
     '',
@@ -195,11 +198,21 @@ export function generateEnglishMasterPrompt(state: AshaAppState): string {
     'Explicitly disclose the following assumptions in your Bahasa Indonesia response:',
     ...assumptionLines,
     '',
-    '## 9. DAILY DETAILED PLAN & GENERATIVE AI .ICS CALENDAR REQUIREMENTS',
-    `- Sajikan Training Plan dan Meal Plan dalam bentuk TERINCI SETIAP HARINYA (day-by-day schedule) selama seluruh periode pencapaian target pengguna (${durationWeeks} minggu penuh / Hari ke-1 hingga Hari ke-${durationWeeks * 7}).`,
-    '- For each daily training session include: day/date, session type, duration, objective, warm-up, exercises (with starting position, step-by-step instructions, breathing, sets/reps/time, intensity/RPE, rest, common mistakes, safety cues, modification, progression, and visual reference), and cool-down.',
+    '## 9. DAILY DETAILED PLAN, EXERCISE MOVEMENT GUIDE & GENERATIVE AI .ICS CALENDAR REQUIREMENTS',
+    `- Sajikan Training Plan dan Meal Plan dalam bentuk TERINCI SETIAP HARINYA (day-by-day schedule) dimulai dari tanggal mulai (${
+      state.planning.startDate ?? 'hari pertama rencana'
+    }) selama seluruh periode pencapaian target pengguna (${durationWeeks} minggu penuh / Hari ke-1 hingga Hari ke-${durationWeeks * 7}).`,
+    '- PANDUAN DETAIL GERAKAN LATIHAN (WAJIB): Selain menyajikan training plan harian, berikan juga informasi lengkap untuk setiap gerakan yang diberikan meliputi:',
+    '  1. Nama Gerakan;',
+    '  2. Fungsi (manfaat gerakan bagi kebugaran/tujuan pengguna);',
+    '  3. Otot yang dilatih (otot utama dan otot pendukung);',
+    '  4. Repetisi, jumlah set, tempo, dan waktu istirahat antar set;',
+    '  5. Cara melakukan gerakan langkah demi langkah (posisi awal, pelaksanaan gerakan, pola pernapasan, kesalahan umum yang harus dihindari, dan tips keamanan);',
+    '  6. Contoh (gambar gerakan / ilustrasi visual / referensi gambar gerakan yang jelas sesuai mode referensi visual).',
     '- For each daily meal plan include: daily meals for every single day across the target period, food choices, portion guidance, estimated energy, protein, carbohydrates, fats, fiber, hydration, meal timing, and diet compatibility.',
-    `- GENERATIVE AI CALENDAR (.ICS) OUTPUT: Kalender (.ics) dihasilkan langsung oleh Generative AI (Gemini) setelah prompt ini dimasukkan ke chat interface. Sediakan blok kode file kalender (.ics) standar RFC 5545 yang kompatibel penuh dengan ${calendarLabel} (lengkap dengan VALARM pengingat ${state.planning.reminderMinutesBefore} menit sebelum jadwal) untuk seluruh jadwal latihan dan makan harian selama ${durationWeeks} minggu.`,
+    `- GENERATIVE AI CALENDAR (.ICS) OUTPUT: Kalender (.ics) dihasilkan langsung oleh Generative AI (Gemini) setelah prompt ini dimasukkan ke chat interface. Sediakan blok kode file kalender (.ics) standar RFC 5545 yang kompatibel penuh dengan ${calendarLabel} (dimulai pada tanggal ${
+      state.planning.startDate ?? 'mulai rencana'
+    }, lengkap dengan VALARM pengingat ${state.planning.reminderMinutesBefore} menit sebelum jadwal) untuk seluruh jadwal latihan dan makan harian selama ${durationWeeks} minggu.`,
     '- Include recovery habits, monitoring indicators, and clear safety disclaimers (ASHA is educational, not a medical diagnosis or prescription; distinguish personal targets from medical targets).',
     '',
     '## 10. QUALITY CONTROL CHECKLIST',
@@ -208,6 +221,7 @@ export function generateEnglishMasterPrompt(state: AshaAppState): string {
     '☐ Relevant physiological factors considered',
     '☐ Unknown physiological states not invented',
     '☐ Detailed day-by-day Training & Meal Plan covers full target timeframe',
+    '☐ Detailed exercise guide included (fungsi/manfaat gerakan, otot yang dilatih, repetisi, cara melakukan gerakan, contoh/gambar gerakan)',
     '☐ Generative AI outputs valid .ics calendar blocks for selected calendar platform',
     '☐ Equipment respected',
     '☐ Diet respected',

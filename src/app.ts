@@ -200,7 +200,8 @@ export function createInitialState(): AshaAppState {
       integrationMode: 'optimize_together',
       exerciseVisualMode: 'external_reference',
       reminderMinutesBefore: 30,
-      calendarProvider: 'google'
+      calendarProvider: 'google',
+      startDate: null
     },
     exerciseGuide: {
       visualMode: 'external_reference'
@@ -208,7 +209,8 @@ export function createInitialState(): AshaAppState {
     calendar: {
       reminderMinutesBefore: 30,
       previewOpen: false,
-      provider: 'google'
+      provider: 'google',
+      startDate: null
     },
     personalization: {
       visualPersona: 'neutral',
@@ -807,6 +809,10 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
               </select>
             </label>
             <label>
+              <span>${isId ? 'Tanggal Dimulainya Plan' : 'Plan Start Date'}</span>
+              <input type="date" data-field="startDate" value="${state.planning.startDate ?? ''}" />
+            </label>
+            <label>
               <span>${isId ? 'Pilihan Kalender' : 'Calendar Platform'}</span>
               <select data-field="calendarProvider">
                 <option value="google" ${
@@ -901,9 +907,9 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
           })</p>
           <p><strong>Diet, Plan & Calendar:</strong> ${state.nutrition.diet ?? 'Not provided'} | ${
             state.planning.planType ?? 'training_and_meal'
-          } (${state.planning.integrationMode ?? 'optimize_together'}) | Calendar: ${(
-            state.planning.calendarProvider ?? 'google'
-          ).toUpperCase()}</p>
+          } (${state.planning.integrationMode ?? 'optimize_together'}) | Start: ${
+            state.planning.startDate ?? 'Not provided'
+          } | Calendar: ${(state.planning.calendarProvider ?? 'google').toUpperCase()}</p>
           <p><strong>AI Assumptions:</strong> ${
             state.assumptions.length > 0 ? state.assumptions.join(' | ') : 'None'
           }</p>
@@ -1292,6 +1298,11 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
       updatePlanning({ integrationMode: val });
     });
 
+    root.querySelector('[data-field="startDate"]')?.addEventListener('change', (e) => {
+      const val = (e.target as HTMLInputElement).value.trim();
+      updatePlanning({ startDate: val || null });
+    });
+
     root.querySelector('[data-field="calendarProvider"]')?.addEventListener('change', (e) => {
       const val = (e.target as HTMLSelectElement).value as CalendarProvider;
       updatePlanning({ calendarProvider: val });
@@ -1575,6 +1586,9 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
     }
     if (patch.calendarProvider) {
       state.calendar.provider = patch.calendarProvider;
+    }
+    if (patch.startDate !== undefined) {
+      state.calendar.startDate = patch.startDate;
     }
     render();
   }
