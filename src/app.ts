@@ -1449,6 +1449,52 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
     `;
   }
 
+  function renderArrowStepTabs(isId: boolean): string {
+    const stepDescriptors = isId
+      ? [
+          { title: 'Langkah 1', subtitle: 'Profil Diri' },
+          { title: 'Langkah 2', subtitle: 'Upload OCR' },
+          { title: 'Langkah 3', subtitle: 'Kesehatan' },
+          { title: 'Langkah 4', subtitle: 'Target & Waktu' },
+          { title: 'Langkah 5', subtitle: 'Jadwal & Diet' },
+          { title: 'Langkah 6', subtitle: 'Kalender & Plan' },
+          { title: 'Langkah 7', subtitle: 'Konfirmasi' }
+        ]
+      : [
+          { title: 'Step 1', subtitle: 'Personal Info' },
+          { title: 'Step 2', subtitle: 'OCR Upload' },
+          { title: 'Step 3', subtitle: 'Health Snapshot' },
+          { title: 'Step 4', subtitle: 'Goal & Time' },
+          { title: 'Step 5', subtitle: 'Schedule & Diet' },
+          { title: 'Step 6', subtitle: 'Calendar & Plan' },
+          { title: 'Step 7', subtitle: 'Review & Confirm' }
+        ];
+
+    const itemsHtml = stepDescriptors
+      .map((item, idx) => {
+        const stateClass =
+          idx === state.ui.currentStep
+            ? 'active'
+            : idx < state.ui.currentStep
+            ? 'done'
+            : '';
+        return `
+          <li class="nav-item ${stateClass}">
+            <a href="#step-${idx + 1}" class="nav-link" data-step-tab="${idx}">
+              ${item.title}<br /><small>${item.subtitle}</small>
+            </a>
+          </li>
+        `;
+      })
+      .join('');
+
+    return `
+      <ul class="nav nav-tabs step-anchor" data-role="wizard-arrow-tabs">
+        ${itemsHtml}
+      </ul>
+    `;
+  }
+
   function render() {
     if (!root) return;
     const isId = state.ui.language === 'id';
@@ -1487,7 +1533,32 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
         ${renderWizardNav(isId, 'top')}
 
         <main class="asha-main">
-          ${renderStepContent(isId)}
+          <div class="modal-dialog modal-xl modal-dialog-centered asha-wizard-modal-dialog" role="document" data-role="wizard-modal-dialog">
+            <div class="modal-content asha-wizard-modal-content">
+              <div class="modal-header asha-wizard-modal-header">
+                <h5 class="modal-title" id="ashaWizardModalTitle">
+                  ${
+                    isId
+                      ? 'Formulir Perencanaan Kesehatan & Kebugaran Personal'
+                      : 'Personal Health & Fitness Planning Wizard'
+                  }
+                </h5>
+                <span class="badge bg-light text-dark border">
+                  ${isId ? 'Langkah' : 'Step'} ${state.ui.currentStep + 1} / ${TOTAL_WIZARD_STEPS}
+                </span>
+              </div>
+              <div class="modal-body asha-wizard-modal-body">
+                <div id="smartwizard" class="sw-main sw-theme-arrows" data-role="smartwizard">
+                  ${renderArrowStepTabs(isId)}
+                  <div class="sw-container tab-content asha-wizard-step-transition">
+                    <div id="step-${state.ui.currentStep + 1}" class="tab-pane step-content active" style="display: block;">
+                      ${renderStepContent(isId)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
           ${renderWizardNav(isId, 'bottom')}
           ${renderChatPanel(isId)}
         </main>
@@ -1536,6 +1607,18 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
     });
     root.querySelectorAll('[data-action="start-over"]').forEach((btn) => {
       btn.addEventListener('click', () => clearSession());
+    });
+    root.querySelectorAll('[data-step-tab]').forEach((tabLink) => {
+      tabLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        const stepIdx = parseInt(
+          (e.currentTarget as HTMLElement).getAttribute('data-step-tab') ?? '0',
+          10
+        );
+        if (!Number.isNaN(stepIdx)) {
+          goToStep(stepIdx);
+        }
+      });
     });
 
     root.querySelector('[data-field="nickname"]')?.addEventListener('change', (e) => {

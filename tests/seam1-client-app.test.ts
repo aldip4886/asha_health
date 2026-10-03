@@ -917,6 +917,15 @@ describe('Seam 1: Client Application Boundary — Ticket 5 (Dual .ics Calendars 
     expect(logoImg.getAttribute('src')).toBe('pics/logo.png');
     expect(root.querySelector('.asha-shell.container')).not.toBeNull();
 
+    // Verify BBBootstrap Modal Dialog Form Wizard with Arrows & Transitions (#smartwizard, sw-theme-arrows)
+    expect(root.querySelector('[data-role="wizard-modal-dialog"].modal-dialog')).not.toBeNull();
+    const smartWizardEl = root.querySelector('#smartwizard.sw-main.sw-theme-arrows');
+    expect(smartWizardEl).not.toBeNull();
+    const arrowTabs = smartWizardEl?.querySelectorAll('ul.step-anchor > li');
+    expect(arrowTabs?.length).toBe(7);
+    expect(smartWizardEl?.querySelectorAll('ul.step-anchor > li.done').length).toBe(6);
+    expect(smartWizardEl?.querySelectorAll('ul.step-anchor > li.active').length).toBe(1);
+
     // Verify Step 7/7 uses pre-filled form style with readonly Bootstrap form-control inputs
     const reviewForm = root.querySelector('form[data-role="review-prefilled-form"]');
     expect(reviewForm).not.toBeNull();

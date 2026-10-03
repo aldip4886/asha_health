@@ -7,8 +7,11 @@
   --asha-text: #1e293b;
   --asha-muted: #64748b;
   --asha-border: #fed7aa;
+  --asha-font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
-  /* Bootstrap 5 Theme Variable Overrides (White & Orange) */
+  /* Bootstrap 5 Theme Variable Overrides (White & Orange + Poppins) */
+  --bs-font-sans-serif: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --bs-body-font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --bs-primary: #f97316;
   --bs-primary-rgb: 249, 115, 22;
   --bs-body-bg: #fffaf5;
@@ -20,12 +23,13 @@
 
 * {
   box-sizing: border-box;
+  font-family: var(--asha-font-family);
 }
 
 body {
   margin: 0;
   min-height: 100vh;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color: var(--asha-text);
   background-color: #fffaf5;
   background-image: none !important;
@@ -207,6 +211,169 @@ input[type="checkbox"]:checked {
   gap: 0.5rem;
 }
 
+/* BBBootstrap Modal Dialog Form Wizard with Arrows & Transitions */
+.asha-wizard-modal-dialog {
+  max-width: 100%;
+  margin: 0 0 1.25rem 0;
+}
+
+.asha-wizard-modal-content {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 2px solid var(--asha-primary);
+  box-shadow: 0 14px 36px rgba(249, 115, 22, 0.12);
+  overflow: hidden;
+}
+
+.asha-wizard-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.4rem;
+  background: linear-gradient(135deg, var(--asha-primary), var(--asha-primary-dark));
+  color: #ffffff;
+  border-bottom: 1px solid var(--asha-border);
+}
+
+.asha-wizard-modal-header .modal-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.asha-wizard-modal-body {
+  padding: 1.25rem 1.4rem;
+  background: #fffaf5;
+}
+
+#smartwizard.sw-main.sw-theme-arrows {
+  border: 1px solid var(--asha-border);
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 4px 16px rgba(249, 115, 22, 0.06);
+}
+
+.sw-theme-arrows > ul.step-anchor {
+  display: flex;
+  flex-wrap: nowrap;
+  border: 0;
+  border-bottom: 1px solid var(--asha-border);
+  padding: 0;
+  background: var(--asha-primary-light);
+  border-radius: 11px 11px 0 0;
+  list-style: none;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.sw-theme-arrows > ul.step-anchor > li {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 112px;
+  margin: 0;
+}
+
+.sw-theme-arrows > ul.step-anchor > li > a,
+.sw-theme-arrows > ul.step-anchor > li > a:hover {
+  position: relative;
+  display: block;
+  padding: 10px 10px 10px 26px;
+  margin: 0;
+  border: 0 !important;
+  border-radius: 0;
+  text-decoration: none;
+  outline-style: none;
+  background: var(--asha-primary-light);
+  color: var(--asha-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.25;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.sw-theme-arrows > ul.step-anchor > li:first-child > a {
+  padding-left: 14px;
+}
+
+.sw-theme-arrows > ul.step-anchor > li > a small {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 400;
+  opacity: 0.9;
+}
+
+.sw-theme-arrows > ul.step-anchor > li > a::after {
+  content: ' ';
+  display: block;
+  width: 0;
+  height: 0;
+  border-top: 28px solid transparent;
+  border-bottom: 28px solid transparent;
+  border-left: 14px solid var(--asha-primary-light);
+  position: absolute;
+  top: 50%;
+  margin-top: -28px;
+  left: 100%;
+  z-index: 2;
+  transition: border-left-color 0.25s ease;
+}
+
+.sw-theme-arrows > ul.step-anchor > li > a::before {
+  content: ' ';
+  display: block;
+  width: 0;
+  height: 0;
+  border-top: 28px solid transparent;
+  border-bottom: 28px solid transparent;
+  border-left: 14px solid var(--asha-border);
+  position: absolute;
+  top: 50%;
+  margin-top: -28px;
+  margin-left: 1px;
+  left: 100%;
+  z-index: 1;
+}
+
+.sw-theme-arrows > ul.step-anchor > li:last-child > a::after,
+.sw-theme-arrows > ul.step-anchor > li:last-child > a::before {
+  display: none;
+}
+
+.sw-theme-arrows > ul.step-anchor > li.done > a {
+  background: #fed7aa !important;
+  color: var(--asha-primary-dark) !important;
+}
+
+.sw-theme-arrows > ul.step-anchor > li.done > a::after {
+  border-left-color: #fed7aa !important;
+}
+
+.sw-theme-arrows > ul.step-anchor > li.active > a {
+  background: var(--asha-primary) !important;
+  color: #ffffff !important;
+}
+
+.sw-theme-arrows > ul.step-anchor > li.active > a::after {
+  border-left-color: var(--asha-primary) !important;
+}
+
+@keyframes ashaWizardStepFade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.asha-wizard-step-transition {
+  padding: 1rem;
+  animation: ashaWizardStepFade 220ms ease-out;
+}
+
 .asha-card {
   background: var(--asha-surface);
   padding: 1.5rem;
@@ -214,7 +381,7 @@ input[type="checkbox"]:checked {
   border: 1px solid var(--asha-border);
   border-top: 4px solid var(--asha-primary);
   box-shadow: 0 10px 25px rgba(249, 115, 22, 0.07);
-  margin-bottom: 1.25rem;
+  margin-bottom: 0.5rem;
 }
 
 .asha-card h2,
