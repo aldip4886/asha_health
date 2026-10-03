@@ -431,15 +431,20 @@ describe('Seam 1: Client Application Boundary — Ticket 5 (Dual .ics Calendars 
       'Saya telah memeriksa informasi dan asumsi yang akan digunakan untuk membuat prompt.'
     );
 
-    // Bagian 7 must ONLY display the confirmation without any extra action buttons after the statement
+    // Bagian 7 must ONLY display the confirmation before confirming (0 buttons)
     const confirmCheckbox = root.querySelector(
       'input[type="checkbox"][data-action="toggle-confirm"]'
     ) as HTMLInputElement;
     expect(confirmCheckbox).not.toBeNull();
     expect(root.querySelectorAll('.asha-review-card button').length).toBe(0);
 
+    // Once confirmed and prompt is generated, show the Copy Prompt button
     app.setConfirmed(true);
-    expect(root.querySelectorAll('.asha-review-card button').length).toBe(0);
+    const copyPromptBtn = root.querySelector(
+      '.asha-review-card button[data-action="copy-prompt"]'
+    ) as HTMLButtonElement;
+    expect(copyPromptBtn).not.toBeNull();
+    expect(root.querySelectorAll('.asha-review-card button').length).toBe(1);
     expect(root.textContent).toContain('SELURUH RESPONS HARUS MENGGUNAKAN BAHASA INDONESIA.');
   });
 
@@ -521,12 +526,34 @@ describe('Seam 1: Client Application Boundary — Ticket 5 (Dual .ics Calendars 
     expect(app.getState().goal.target).toContain('< 100 mg/dL');
   });
 
-  it('renders Step 5 with checkboxes for training/rest days and equipment, session dividers, conditional IF fields, Step 6 calendar provider options (Google, Outlook, Apple), and instructs Gemini to generate daily plans and .ics files', () => {
+  it('renders Step 5 with time picker, Select All training days greying out rest days, Tidak Ada (Gunakan Bodyweight) equipment option, top & bottom navigation, and professional Header/Footer', () => {
     const root = document.getElementById('app')!;
     const app = createAshaApp({ root });
 
+    // Professional Header and Footer must exist on every step
+    expect(root.querySelector('header.asha-header')).not.toBeNull();
+    expect(root.querySelector('footer.asha-footer')).not.toBeNull();
+
+    // Top and bottom navigation bars must exist on every step
+    expect(root.querySelectorAll('.asha-wizard-nav').length).toBe(2);
+    const bottomNextBtn = root.querySelector(
+      '.asha-wizard-nav-bottom [data-action="next-step"]'
+    ) as HTMLButtonElement;
+    expect(bottomNextBtn).not.toBeNull();
+    bottomNextBtn.click();
+    expect(app.getState().ui.currentStep).toBe(1);
+
     // Navigate to Step 5 (index 4)
     app.goToStep(4);
+
+    // Preferred Training Time must be a time picker (<input type="time">)
+    const timePicker = root.querySelector(
+      'input[type="time"][data-field="preferredTime"]'
+    ) as HTMLInputElement;
+    expect(timePicker).not.toBeNull();
+
+    // Equipment must show "Tidak Ada (Gunakan Bodyweight)"
+    expect(root.textContent).toContain('Tidak Ada (Gunakan Bodyweight)');
 
     // Training days and rest days must be checkboxes
     const monTrainCheck = root.querySelector(
@@ -544,6 +571,23 @@ describe('Seam 1: Client Application Boundary — Ticket 5 (Dual .ics Calendars 
     tueRestCheck.checked = true;
     tueRestCheck.dispatchEvent(new Event('change'));
     expect(app.getState().schedule.restDays).toContain('Tuesday');
+
+    // Select All (Pilih Semua) on Training Days must select all 7 days and disable/grey out Rest Days
+    const selectAllTrain = root.querySelector(
+      'input[type="checkbox"][data-action="select-all-training-days"]'
+    ) as HTMLInputElement;
+    expect(selectAllTrain).not.toBeNull();
+    selectAllTrain.checked = true;
+    selectAllTrain.dispatchEvent(new Event('change'));
+
+    expect(app.getState().schedule.trainingDays.length).toBe(7);
+    expect(app.getState().schedule.restDays.length).toBe(0);
+
+    const restFieldset = root.querySelector('.asha-rest-days-group') as HTMLFieldSetElement;
+    expect(restFieldset).not.toBeNull();
+    expect(restFieldset.classList.contains('asha-disabled-group')).toBe(true);
+    const disabledRestCheckboxes = root.querySelectorAll('input[data-rest-day]:disabled');
+    expect(disabledRestCheckboxes.length).toBe(7);
 
     // Must have 2 session dividers in Step 5 separating the 3 sections
     const dividers = root.querySelectorAll('.asha-session-divider');
@@ -584,5 +628,4 @@ describe('Seam 1: Client Application Boundary — Ticket 5 (Dual .ics Calendars 
     expect(prompt).toContain('6 weeks');
   });
 });
-
 

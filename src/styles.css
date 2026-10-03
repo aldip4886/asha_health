@@ -43,23 +43,48 @@ body.persona-transition {
   align-items: center;
   gap: 1rem;
   background: #ffffff;
-  padding: 1rem 1.25rem;
-  border-radius: 12px;
+  padding: 1.15rem 1.4rem;
+  border-radius: 14px;
   border: 2px solid var(--asha-primary);
-  box-shadow: 0 4px 14px rgba(249, 115, 22, 0.08);
-  margin-bottom: 1rem;
+  box-shadow: 0 6px 20px rgba(249, 115, 22, 0.1);
+  margin-bottom: 1.25rem;
+}
+
+.asha-brand-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.asha-logo-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--asha-primary), var(--asha-primary-dark));
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  padding: 0.3rem 0.6rem;
+  border-radius: 8px;
 }
 
 .asha-brand h1 {
   margin: 0;
   color: var(--asha-primary-dark);
-  font-size: 1.4rem;
+  font-size: 1.35rem;
 }
 
 .asha-cta {
-  margin: 0.25rem 0 0;
+  margin: 0.3rem 0 0;
   color: var(--asha-muted);
   font-size: 0.9rem;
+}
+
+.asha-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .asha-wizard-nav {
@@ -73,6 +98,16 @@ body.persona-transition {
   border-radius: 10px;
   border: 1px solid var(--asha-border);
   margin-bottom: 1rem;
+}
+
+.asha-wizard-nav-bottom {
+  margin-top: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.asha-step-buttons {
+  display: flex;
+  gap: 0.5rem;
 }
 
 .asha-card {
@@ -115,12 +150,38 @@ body.persona-transition {
   border-radius: 10px;
   padding: 0.85rem 1rem;
   margin-bottom: 1rem;
+  transition: opacity 180ms ease, background-color 180ms ease;
 }
 
 .asha-checkbox-group legend {
   color: var(--asha-primary-dark);
   font-weight: 600;
   padding: 0 0.4rem;
+}
+
+.asha-select-all-row {
+  margin-bottom: 0.65rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--asha-border);
+}
+
+.asha-select-all-check {
+  font-weight: 700;
+  color: var(--asha-primary-dark);
+}
+
+.asha-disabled-group {
+  opacity: 0.45;
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  pointer-events: none;
+}
+
+.asha-disabled-check {
+  cursor: not-allowed;
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+  color: #64748b;
 }
 
 .asha-checkbox-grid {
@@ -156,6 +217,7 @@ label {
 
 input[type="text"],
 input[type="number"],
+input[type="time"],
 select {
   padding: 0.55rem 0.75rem;
   border-radius: 8px;
@@ -166,6 +228,7 @@ select {
 
 input[type="text"]:focus,
 input[type="number"]:focus,
+input[type="time"]:focus,
 select:focus {
   outline: 2px solid var(--asha-primary);
   border-color: var(--asha-primary);
@@ -214,8 +277,14 @@ button:disabled {
   color: var(--asha-primary-dark);
 }
 
-.asha-prompt-box {
+.asha-prompt-toolbar {
+  display: flex;
+  justify-content: flex-end;
   margin-top: 1rem;
+}
+
+.asha-prompt-box {
+  margin-top: 0.65rem;
   padding: 1rem;
   background: #fffaf5;
   border: 1px solid var(--asha-border);
@@ -224,6 +293,33 @@ button:disabled {
   font-size: 0.85rem;
   max-height: 320px;
   overflow-y: auto;
+}
+
+.asha-footer {
+  margin-top: 2rem;
+  padding: 1.25rem 1.5rem;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid var(--asha-border);
+  border-bottom: 4px solid var(--asha-primary);
+  box-shadow: 0 4px 14px rgba(249, 115, 22, 0.06);
+}
+
+.asha-footer-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--asha-muted);
+}
+
+.asha-footer-brand {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--asha-primary-dark);
 }
 
 @media (max-width: 768px) {

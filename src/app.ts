@@ -597,6 +597,10 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
     }
 
     if (step === 4) {
+      const allTrainingDaysSelected = DAYS_OF_WEEK.every((d) =>
+        state.schedule.trainingDays.includes(d)
+      );
+
       const trainingDayCheckboxes = DAYS_OF_WEEK.map(
         (day) => `
           <label class="asha-inline-check">
@@ -610,15 +614,25 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
 
       const restDayCheckboxes = DAYS_OF_WEEK.map(
         (day) => `
-          <label class="asha-inline-check">
+          <label class="asha-inline-check ${allTrainingDaysSelected ? 'asha-disabled-check' : ''}">
             <input type="checkbox" data-rest-day="${day}" ${
-              state.schedule.restDays.includes(day) ? 'checked' : ''
+              allTrainingDaysSelected
+                ? 'disabled'
+                : state.schedule.restDays.includes(day)
+                ? 'checked'
+                : ''
             } />
             <span>${isId ? DAY_LABELS_ID[day] : day}</span>
           </label>
         `
       ).join('');
 
+      const equipLabels: Record<EquipmentItem, string> = {
+        bodyweight: isId ? 'Tidak Ada (Gunakan Bodyweight)' : 'None (Use Bodyweight)',
+        dumbbells: 'Dumbbells',
+        barbell: 'Barbell',
+        fitness_ball: 'Fitness Ball'
+      };
       const equipItems: EquipmentItem[] = ['bodyweight', 'dumbbells', 'barbell', 'fitness_ball'];
       const equipCheckboxes = equipItems
         .map(
@@ -627,7 +641,7 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
               <input type="checkbox" data-equipment="${item}" ${
                 state.equipment.selected.includes(item) ? 'checked' : ''
               } />
-              <span>${item}</span>
+              <span>${equipLabels[item]}</span>
             </label>
           `
         )
@@ -663,10 +677,20 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
           <div class="asha-session-block">
             <fieldset class="asha-checkbox-group">
               <legend>${isId ? 'Pilihan Hari Latihan' : 'Training Days'}</legend>
+              <div class="asha-select-all-row">
+                <label class="asha-inline-check asha-select-all-check">
+                  <input type="checkbox" data-action="select-all-training-days" ${
+                    allTrainingDaysSelected ? 'checked' : ''
+                  } />
+                  <span>${isId ? 'Pilih Semua (Select All)' : 'Select All'}</span>
+                </label>
+              </div>
               <div class="asha-checkbox-grid">${trainingDayCheckboxes}</div>
             </fieldset>
 
-            <fieldset class="asha-checkbox-group">
+            <fieldset class="asha-checkbox-group asha-rest-days-group ${
+              allTrainingDaysSelected ? 'asha-disabled-group' : ''
+            }" ${allTrainingDaysSelected ? 'disabled' : ''}>
               <legend>${isId ? 'Pilihan Hari Istirahat' : 'Rest Days'}</legend>
               <div class="asha-checkbox-grid">${restDayCheckboxes}</div>
             </fieldset>
@@ -683,10 +707,10 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
             <h3>${isId ? 'Waktu Latihan & Durasi' : 'Training Time & Duration'}</h3>
             <div class="asha-grid">
               <label>
-                <span>${isId ? 'Waktu Latihan Pilihan' : 'Preferred Training Time'}</span>
-                <input type="text" data-field="preferredTime" value="${
+                <span>${isId ? 'Waktu Pilihan Latihan' : 'Preferred Training Time'}</span>
+                <input type="time" data-field="preferredTime" value="${
                   state.schedule.preferredTime ?? ''
-                }" placeholder="07:00" />
+                }" />
               </label>
               <label>
                 <span>${isId ? 'Durasi Sesi (menit)' : 'Session Duration (minutes)'}</span>
@@ -826,7 +850,7 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
       `;
     }
 
-    // Step 7 (index 6): Review & Confirmation Screen (only confirmation shown, no extra buttons after statement)
+    // Step 7 (index 6): Review & Confirmation Screen (only confirmation shown before prompt generation; Copy Prompt shown once prompt is generated)
     applyAssumptionsAndPersonalization(state);
     const personaInfo = resolveVisualPersona(state.personal.sex);
     const healthSummary = BIOMARKER_KEYS.map(
@@ -836,6 +860,11 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
     const promptPreview = state.confirmation.confirmed
       ? `
           <div class="asha-prompt-container">
+            <div class="asha-prompt-toolbar">
+              <button type="button" class="asha-primary-btn asha-copy-prompt-btn" data-action="copy-prompt">
+                ${isId ? 'Copy Prompt (Salin Prompt)' : 'Copy Prompt'}
+              </button>
+            </div>
             <pre class="asha-prompt-box">${generateEnglishMasterPrompt(state)}</pre>
           </div>
         `
@@ -966,6 +995,22 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
     `;
   }
 
+  function renderWizardNav(isId: boolean, position: 'top' | 'bottom'): string {
+    return `
+      <nav class="asha-wizard-nav asha-wizard-nav-${position}" aria-label="Wizard Progress ${position}">
+        <span>${isId ? 'Langkah' : 'Step'} ${state.ui.currentStep + 1} / ${TOTAL_WIZARD_STEPS}</span>
+        <div class="asha-step-buttons">
+          <button type="button" data-action="prev-step" ${
+            state.ui.currentStep === 0 ? 'disabled' : ''
+          }>${isId ? 'Sebelumnya' : 'Back'}</button>
+          <button type="button" class="asha-primary-btn" data-action="next-step" ${
+            state.ui.currentStep >= TOTAL_WIZARD_STEPS - 1 ? 'disabled' : ''
+          }>${isId ? 'Selanjutnya' : 'Next'}</button>
+        </div>
+      </nav>
+    `;
+  }
+
   function render() {
     if (!root) return;
     const isId = state.ui.language === 'id';
@@ -973,7 +1018,10 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
       <div class="asha-shell" data-persona="${state.personalization.visualPersona}">
         <header class="asha-header">
           <div class="asha-brand">
-            <h1>ASHA — Personal Health Companion</h1>
+            <div class="asha-brand-title-row">
+              <span class="asha-logo-badge">ASHA</span>
+              <h1>ASHA — Personal Health Companion</h1>
+            </div>
             <p class="asha-cta">${
               isId
                 ? 'Mulai — Hope is the beginning of the plan'
@@ -993,22 +1041,33 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
           </div>
         </header>
 
-        <nav class="asha-wizard-nav" aria-label="Wizard Progress">
-          <span>${isId ? 'Langkah' : 'Step'} ${state.ui.currentStep + 1} / ${TOTAL_WIZARD_STEPS}</span>
-          <div class="asha-step-buttons">
-            <button type="button" data-action="prev-step" ${
-              state.ui.currentStep === 0 ? 'disabled' : ''
-            }>${isId ? 'Sebelumnya' : 'Back'}</button>
-            <button type="button" data-action="next-step" ${
-              state.ui.currentStep >= TOTAL_WIZARD_STEPS - 1 ? 'disabled' : ''
-            }>${isId ? 'Selanjutnya' : 'Next'}</button>
-          </div>
-        </nav>
+        ${renderWizardNav(isId, 'top')}
 
         <main class="asha-main">
           ${renderStepContent(isId)}
+          ${renderWizardNav(isId, 'bottom')}
           ${renderChatPanel(isId)}
         </main>
+
+        <footer class="asha-footer">
+          <div class="asha-footer-content">
+            <div class="asha-footer-brand">
+              <strong>ASHA — Adaptive Smart Health Assistant (v1.7)</strong>
+              <span>${
+                isId
+                  ? 'Perencanaan Kebugaran & Nutrisi Personal Berbasis Bukti'
+                  : 'Evidence-Informed Personal Fitness & Nutrition Companion'
+              }</span>
+            </div>
+            <div class="asha-footer-meta">
+              <span>${
+                isId
+                  ? 'Privasi 100% In-Memory (Tanpa Penyimpanan Data Kesehatan) • Edukatif & Bukan Diagnosis Medis'
+                  : '100% In-Memory Privacy (Zero Health Data Storage) • Educational & Not Medical Diagnosis'
+              }</span>
+            </div>
+          </div>
+        </footer>
       </div>
     `;
 
@@ -1023,8 +1082,12 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
     root
       .querySelector('[data-action="clear-session"]')
       ?.addEventListener('click', () => clearSession());
-    root.querySelector('[data-action="prev-step"]')?.addEventListener('click', () => prevStep());
-    root.querySelector('[data-action="next-step"]')?.addEventListener('click', () => nextStep());
+    root.querySelectorAll('[data-action="prev-step"]').forEach((btn) => {
+      btn.addEventListener('click', () => prevStep());
+    });
+    root.querySelectorAll('[data-action="next-step"]').forEach((btn) => {
+      btn.addEventListener('click', () => nextStep());
+    });
 
     root.querySelector('[data-field="sex"]')?.addEventListener('change', (e) => {
       const val = (e.target as HTMLSelectElement).value as SexSelection | '';
@@ -1137,6 +1200,17 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
       updateTimeframe(Number.isNaN(val) ? null : val);
     });
 
+    root
+      .querySelector('[data-action="select-all-training-days"]')
+      ?.addEventListener('change', (e) => {
+        const isChecked = (e.target as HTMLInputElement).checked;
+        if (isChecked) {
+          updateSchedule({ trainingDays: [...DAYS_OF_WEEK], restDays: [] });
+        } else {
+          updateSchedule({ trainingDays: [] });
+        }
+      });
+
     root.querySelectorAll('[data-training-day]').forEach((checkbox) => {
       checkbox.addEventListener('change', () => {
         const checked: string[] = [];
@@ -1147,7 +1221,12 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
             if (day) checked.push(day);
           }
         });
-        updateSchedule({ trainingDays: checked });
+        const allSelected = DAYS_OF_WEEK.every((d) => checked.includes(d));
+        if (allSelected) {
+          updateSchedule({ trainingDays: checked, restDays: [] });
+        } else {
+          updateSchedule({ trainingDays: checked });
+        }
       });
     });
 
