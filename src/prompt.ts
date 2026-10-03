@@ -3,6 +3,7 @@ import {
   AspirationType,
   BIOMARKER_KEYS,
   BIOMARKER_LABELS,
+  CalendarProvider,
   DietType,
   ExerciseVisualMode,
   PlanTypeOption
@@ -31,6 +32,12 @@ const PLAN_TYPE_LABELS: Record<PlanTypeOption, string> = {
   training_only: 'Training Plan Only',
   meal_only: 'Meal Plan Only',
   training_and_meal: 'Training + Meal Plan'
+};
+
+const CALENDAR_PROVIDER_LABELS: Record<CalendarProvider, string> = {
+  google: 'Google Calendar',
+  outlook: 'Outlook Calendar',
+  apple: 'Apple Calendar'
 };
 
 const VISUAL_MODE_LABELS: Record<ExerciseVisualMode, string> = {
@@ -88,6 +95,9 @@ export function generateEnglishMasterPrompt(state: AshaAppState): string {
 
   const planType = state.planning.planType ?? 'training_and_meal';
   const integrationMode = state.planning.integrationMode ?? 'optimize_together';
+  const calendarProvider = state.planning.calendarProvider ?? 'google';
+  const calendarLabel = CALENDAR_PROVIDER_LABELS[calendarProvider];
+  const durationWeeks = state.timeframe.durationWeeks ?? 8;
 
   return [
     '# ASHA MASTER PROMPT (Personal Health Companion v1.7)',
@@ -154,7 +164,7 @@ export function generateEnglishMasterPrompt(state: AshaAppState): string {
     'HARD EQUIPMENT RULE: Never prescribe an exercise requiring equipment the user does not have.',
     `- Diet: ${dietFormatted}`,
     '',
-    '## 6. PLAN TYPE, INTEGRATION & EXERCISE VISUAL PREFERENCES',
+    '## 6. PLAN TYPE, INTEGRATION, CALENDAR PLATFORM & EXERCISE VISUAL PREFERENCES',
     `- Plan Type: ${PLAN_TYPE_LABELS[planType]}`,
     `- Integration Mode: ${integrationMode}`,
     ...(planType === 'training_and_meal' && integrationMode === 'optimize_together'
@@ -163,6 +173,7 @@ export function generateEnglishMasterPrompt(state: AshaAppState): string {
         ]
       : []),
     `- Exercise Visual Reference Mode: ${VISUAL_MODE_LABELS[state.planning.exerciseVisualMode]}`,
+    `- Target Calendar Platform: ${calendarLabel} (Reminder: ${state.planning.reminderMinutesBefore} minutes before event)`,
     '',
     '## 7. SEX-AWARE PERSONALIZATION',
     'Gunakan informasi jenis kelamin pengguna hanya sebagai salah satu variabel kontekstual dalam personalisasi.',
@@ -184,9 +195,11 @@ export function generateEnglishMasterPrompt(state: AshaAppState): string {
     'Explicitly disclose the following assumptions in your Bahasa Indonesia response:',
     ...assumptionLines,
     '',
-    '## 9. TRAINING, NUTRITION, RECOVERY & SAFETY REQUIREMENTS',
-    '- For each training session include: date/day, session type, duration, objective, warm-up, exercises (with starting position, step-by-step instructions, breathing, sets/reps/time, intensity/RPE, rest, common mistakes, safety cues, modification, progression, and visual reference), and cool-down.',
-    '- For meal planning include: daily meals, food choices, portion guidance, estimated energy, protein, carbohydrates, fats, fiber, hydration, meal timing, and diet compatibility.',
+    '## 9. DAILY DETAILED PLAN & GENERATIVE AI .ICS CALENDAR REQUIREMENTS',
+    `- Sajikan Training Plan dan Meal Plan dalam bentuk TERINCI SETIAP HARINYA (day-by-day schedule) selama seluruh periode pencapaian target pengguna (${durationWeeks} minggu penuh / Hari ke-1 hingga Hari ke-${durationWeeks * 7}).`,
+    '- For each daily training session include: day/date, session type, duration, objective, warm-up, exercises (with starting position, step-by-step instructions, breathing, sets/reps/time, intensity/RPE, rest, common mistakes, safety cues, modification, progression, and visual reference), and cool-down.',
+    '- For each daily meal plan include: daily meals for every single day across the target period, food choices, portion guidance, estimated energy, protein, carbohydrates, fats, fiber, hydration, meal timing, and diet compatibility.',
+    `- GENERATIVE AI CALENDAR (.ICS) OUTPUT: Kalender (.ics) dihasilkan langsung oleh Generative AI (Gemini) setelah prompt ini dimasukkan ke chat interface. Sediakan blok kode file kalender (.ics) standar RFC 5545 yang kompatibel penuh dengan ${calendarLabel} (lengkap dengan VALARM pengingat ${state.planning.reminderMinutesBefore} menit sebelum jadwal) untuk seluruh jadwal latihan dan makan harian selama ${durationWeeks} minggu.`,
     '- Include recovery habits, monitoring indicators, and clear safety disclaimers (ASHA is educational, not a medical diagnosis or prescription; distinguish personal targets from medical targets).',
     '',
     '## 10. QUALITY CONTROL CHECKLIST',
@@ -194,8 +207,8 @@ export function generateEnglishMasterPrompt(state: AshaAppState): string {
     '☐ No sex stereotype',
     '☐ Relevant physiological factors considered',
     '☐ Unknown physiological states not invented',
-    '☐ Training matches goal',
-    '☐ Nutrition matches goal',
+    '☐ Detailed day-by-day Training & Meal Plan covers full target timeframe',
+    '☐ Generative AI outputs valid .ics calendar blocks for selected calendar platform',
     '☐ Equipment respected',
     '☐ Diet respected',
     '☐ Safety included',

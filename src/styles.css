@@ -1,10 +1,12 @@
 :root {
   --asha-persona-background: url("pics/Minimalist Fitness Portrait with Negative Space.png");
-  --asha-primary: #0f766e;
-  --asha-surface: rgba(255, 255, 255, 0.92);
-  --asha-text: #0f172a;
-  --asha-muted: #475569;
-  --asha-border: #cbd5e1;
+  --asha-primary: #f97316;
+  --asha-primary-dark: #ea580c;
+  --asha-primary-light: #fff7ed;
+  --asha-surface: rgba(255, 255, 255, 0.96);
+  --asha-text: #1e293b;
+  --asha-muted: #64748b;
+  --asha-border: #fed7aa;
 }
 
 * {
@@ -40,18 +42,33 @@ body.persona-transition {
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
-  background: var(--asha-surface);
+  background: #ffffff;
   padding: 1rem 1.25rem;
   border-radius: 12px;
-  border: 1px solid var(--asha-border);
+  border: 2px solid var(--asha-primary);
+  box-shadow: 0 4px 14px rgba(249, 115, 22, 0.08);
   margin-bottom: 1rem;
+}
+
+.asha-brand h1 {
+  margin: 0;
+  color: var(--asha-primary-dark);
+  font-size: 1.4rem;
+}
+
+.asha-cta {
+  margin: 0.25rem 0 0;
+  color: var(--asha-muted);
+  font-size: 0.9rem;
 }
 
 .asha-wizard-nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: var(--asha-surface);
+  background: var(--asha-primary-light);
+  color: var(--asha-primary-dark);
+  font-weight: 600;
   padding: 0.75rem 1.25rem;
   border-radius: 10px;
   border: 1px solid var(--asha-border);
@@ -64,8 +81,15 @@ body.persona-transition {
   padding: 1.5rem;
   border-radius: 14px;
   border: 1px solid var(--asha-border);
-  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.05);
+  border-top: 4px solid var(--asha-primary);
+  box-shadow: 0 10px 25px rgba(249, 115, 22, 0.07);
   margin-bottom: 1.25rem;
+}
+
+.asha-card h2,
+.asha-card h3 {
+  color: var(--asha-primary-dark);
+  margin-top: 0;
 }
 
 .asha-grid {
@@ -73,6 +97,53 @@ body.persona-transition {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1rem;
   margin-top: 1rem;
+}
+
+.asha-session-block {
+  padding: 0.5rem 0;
+}
+
+.asha-session-divider {
+  border: none;
+  border-top: 2px dashed var(--asha-border);
+  margin: 1.5rem 0;
+}
+
+.asha-checkbox-group {
+  border: 1px solid var(--asha-border);
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.asha-checkbox-group legend {
+  color: var(--asha-primary-dark);
+  font-weight: 600;
+  padding: 0 0.4rem;
+}
+
+.asha-checkbox-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  margin-top: 0.35rem;
+}
+
+.asha-inline-check {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.45rem;
+  background: var(--asha-primary-light);
+  border: 1px solid var(--asha-border);
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+input[type="checkbox"] {
+  accent-color: var(--asha-primary);
 }
 
 label {
@@ -89,17 +160,30 @@ select {
   padding: 0.55rem 0.75rem;
   border-radius: 8px;
   border: 1px solid var(--asha-border);
+  background: #ffffff;
   font-size: 0.95rem;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+select:focus {
+  outline: 2px solid var(--asha-primary);
+  border-color: var(--asha-primary);
 }
 
 button {
   padding: 0.55rem 0.95rem;
   border-radius: 8px;
-  border: 1px solid var(--asha-border);
+  border: 1px solid var(--asha-primary);
   background: #ffffff;
-  color: var(--asha-text);
+  color: var(--asha-primary-dark);
   cursor: pointer;
   font-weight: 600;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+button:hover:not(:disabled) {
+  background: var(--asha-primary-light);
 }
 
 button.asha-primary-btn {
@@ -108,22 +192,32 @@ button.asha-primary-btn {
   border-color: var(--asha-primary);
 }
 
+button.asha-primary-btn:hover:not(:disabled) {
+  background: var(--asha-primary-dark);
+}
+
 button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.asha-review-actions {
-  display: flex;
-  flex-wrap: wrap;
+.asha-confirm-checkbox {
+  flex-direction: row;
+  align-items: center;
   gap: 0.65rem;
-  margin-top: 1rem;
+  margin-top: 1.25rem;
+  padding: 0.9rem 1rem;
+  background: var(--asha-primary-light);
+  border: 1px solid var(--asha-primary);
+  border-radius: 10px;
+  font-weight: 600;
+  color: var(--asha-primary-dark);
 }
 
 .asha-prompt-box {
   margin-top: 1rem;
   padding: 1rem;
-  background: #f8fafc;
+  background: #fffaf5;
   border: 1px solid var(--asha-border);
   border-radius: 8px;
   white-space: pre-wrap;

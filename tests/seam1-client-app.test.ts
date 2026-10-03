@@ -408,45 +408,52 @@ describe('Seam 1: Client Application Boundary — Ticket 5 (Dual .ics Calendars 
     expect(snapshotMd).toContain('Rencana v1.0 dalam Bahasa Indonesia siap dijalankan.');
   });
 
-  it('renders interactive step-by-step wizard navigation, Review screen confirmation checkbox, and power-user Show Master Prompt disclosure in the DOM', () => {
+  it('renders interactive step-by-step wizard navigation, shows Step 2 OCR upload before Step 3 Health Snapshot, and shows only confirmation without extra buttons on Step 7', () => {
     const root = document.getElementById('app')!;
     const app = createAshaApp({ root });
 
     expect(app.getState().ui.currentStep).toBe(0);
+
+    // Step 2 (index 1) must be Health Report OCR Upload (before Health Snapshot)
     app.nextStep();
     expect(app.getState().ui.currentStep).toBe(1);
-    app.prevStep();
-    expect(app.getState().ui.currentStep).toBe(0);
+    expect(root.querySelector('[data-action="ocr-file"]')).not.toBeNull();
+    expect(root.querySelector('[data-biomarker="bloodPressure"]')).toBeNull();
 
-    // Jump to Review step (step 6)
+    // Step 3 (index 2) must be Health Snapshot
+    app.nextStep();
+    expect(app.getState().ui.currentStep).toBe(2);
+    expect(root.querySelector('[data-biomarker="bloodPressure"]')).not.toBeNull();
+
+    // Jump to Review step (step 6 / Bagian 7)
     app.goToStep(6);
     expect(root.textContent).toContain(
       'Saya telah memeriksa informasi dan asumsi yang akan digunakan untuk membuat prompt.'
     );
 
-    const startChatBtn = root.querySelector('[data-action="start-chat"]') as HTMLButtonElement;
-    expect(startChatBtn.disabled).toBe(true);
+    // Bagian 7 must ONLY display the confirmation without any extra action buttons after the statement
+    const confirmCheckbox = root.querySelector(
+      'input[type="checkbox"][data-action="toggle-confirm"]'
+    ) as HTMLInputElement;
+    expect(confirmCheckbox).not.toBeNull();
+    expect(root.querySelectorAll('.asha-review-card button').length).toBe(0);
 
     app.setConfirmed(true);
-    const enabledStartChatBtn = root.querySelector('[data-action="start-chat"]') as HTMLButtonElement;
-    expect(enabledStartChatBtn.disabled).toBe(false);
-
-    // Toggle power-user Show Master Prompt disclosure
-    expect(app.getState().ui.showMasterPrompt).toBe(false);
-    app.toggleMasterPromptDisclosure();
-    expect(app.getState().ui.showMasterPrompt).toBe(true);
+    expect(root.querySelectorAll('.asha-review-card button').length).toBe(0);
     expect(root.textContent).toContain('SELURUH RESPONS HARUS MENGGUNAKAN BAHASA INDONESIA.');
   });
 
-  it('provides selectable ethnic group options and progressively reveals Aspiration sub-targets before unlocking Timeframe in Step 4', () => {
+  it('provides the 6 specified ethnic group options (Asian, Kaukasian, American, Latin, Indian, Other) and progressively reveals Aspiration sub-targets before unlocking Timeframe in Step 4', () => {
     const root = document.getElementById('app')!;
     const app = createAshaApp({ root });
 
-    // Step 0: Ethnicity should be a <select> with predefined options
+    // Step 0: Ethnicity should be a <select> with exact options: Asian, Kaukasian, American, Latin, Indian, Other
     const ethnicitySelect = root.querySelector('select[data-field="ethnicity"]') as HTMLSelectElement;
     expect(ethnicitySelect).not.toBeNull();
-    expect(ethnicitySelect.options.length).toBeGreaterThan(5);
-    expect(Array.from(ethnicitySelect.options).map((o) => o.value)).toContain('Jawa');
+    const ethValues = Array.from(ethnicitySelect.options)
+      .map((o) => o.value)
+      .filter(Boolean);
+    expect(ethValues).toEqual(['Asian', 'Kaukasian', 'American', 'Latin', 'Indian', 'Other']);
 
     // Navigate to Step 3 (4. Aspirasi, Target & Jangka Waktu)
     app.goToStep(3);
@@ -513,10 +520,69 @@ describe('Seam 1: Client Application Boundary — Ticket 5 (Dual .ics Calendars 
     expect(app.getState().goal.target).toContain('LDL');
     expect(app.getState().goal.target).toContain('< 100 mg/dL');
   });
+
+  it('renders Step 5 with checkboxes for training/rest days and equipment, session dividers, conditional IF fields, Step 6 calendar provider options (Google, Outlook, Apple), and instructs Gemini to generate daily plans and .ics files', () => {
+    const root = document.getElementById('app')!;
+    const app = createAshaApp({ root });
+
+    // Navigate to Step 5 (index 4)
+    app.goToStep(4);
+
+    // Training days and rest days must be checkboxes
+    const monTrainCheck = root.querySelector(
+      'input[type="checkbox"][data-training-day="Monday"]'
+    ) as HTMLInputElement;
+    expect(monTrainCheck).not.toBeNull();
+    monTrainCheck.checked = true;
+    monTrainCheck.dispatchEvent(new Event('change'));
+    expect(app.getState().schedule.trainingDays).toContain('Monday');
+
+    const tueRestCheck = root.querySelector(
+      'input[type="checkbox"][data-rest-day="Tuesday"]'
+    ) as HTMLInputElement;
+    expect(tueRestCheck).not.toBeNull();
+    tueRestCheck.checked = true;
+    tueRestCheck.dispatchEvent(new Event('change'));
+    expect(app.getState().schedule.restDays).toContain('Tuesday');
+
+    // Must have 2 session dividers in Step 5 separating the 3 sections
+    const dividers = root.querySelectorAll('.asha-session-divider');
+    expect(dividers.length).toBe(2);
+
+    // IF Protocol & Eating Window must be hidden until intermittent_fasting is selected
+    expect(root.querySelector('[data-field="fastingProtocol"]')).toBeNull();
+    expect(root.querySelector('[data-field="eatingWindow"]')).toBeNull();
+
+    app.updateNutrition({ diet: 'keto' });
+    expect(root.querySelector('[data-field="fastingProtocol"]')).toBeNull();
+    expect(root.querySelector('[data-field="eatingWindow"]')).toBeNull();
+
+    app.updateNutrition({ diet: 'intermittent_fasting' });
+    expect(root.querySelector('[data-field="fastingProtocol"]')).not.toBeNull();
+    expect(root.querySelector('[data-field="eatingWindow"]')).not.toBeNull();
+
+    // Navigate to Step 6 (index 5) and verify Calendar Provider options (Google, Outlook, Apple)
+    app.goToStep(5);
+    const calSelect = root.querySelector(
+      'select[data-field="calendarProvider"]'
+    ) as HTMLSelectElement;
+    expect(calSelect).not.toBeNull();
+    const calOptions = Array.from(calSelect.options).map((o) => o.value);
+    expect(calOptions).toEqual(['google', 'outlook', 'apple']);
+
+    calSelect.value = 'apple';
+    calSelect.dispatchEvent(new Event('change'));
+    expect(app.getState().planning.calendarProvider).toBe('apple');
+
+    // Verify Master Prompt instructs Gemini to generate detailed daily training & meal plan across target period and .ics calendar
+    app.updateTimeframe(6);
+    app.setConfirmed(true);
+    const prompt = app.getMasterPrompt();
+    expect(prompt).toContain('Apple');
+    expect(prompt).toContain('.ics');
+    expect(prompt).toMatch(/setiap harinya|day-by-day/i);
+    expect(prompt).toContain('6 weeks');
+  });
 });
-
-
-
-
 
 

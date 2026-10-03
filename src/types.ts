@@ -93,23 +93,25 @@ export interface HealthReportState {
 }
 
 export const ETHNICITY_OPTIONS = [
-  'Jawa',
-  'Sunda',
-  'Melayu',
-  'Batak',
-  'Minangkabau',
-  'Bugis / Makassar',
-  'Bali',
-  'Madura',
-  'Betawi',
-  'Tionghoa-Indonesia',
-  'Timur Indonesia (Papua / Maluku / NTT)',
-  'Asia Tenggara Lainnya',
-  'Asia Timur / Selatan',
-  'Kaukasia / Eropa',
-  'Timur Tengah / Afrika',
-  'Lainnya / Campuran'
+  'Asian',
+  'Kaukasian',
+  'American',
+  'Latin',
+  'Indian',
+  'Other'
 ] as const;
+
+export const DAYS_OF_WEEK = [
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+  'Sunday'
+] as const;
+
+export type CalendarProvider = 'google' | 'outlook' | 'apple';
 
 export interface GoalState {
   aspiration: AspirationType | null;
@@ -180,6 +182,7 @@ export interface PlanningState {
   integrationMode: IntegrationModeOption | null;
   exerciseVisualMode: ExerciseVisualMode;
   reminderMinutesBefore: number;
+  calendarProvider?: CalendarProvider;
 }
 
 export interface ExerciseGuideState {
@@ -189,6 +192,7 @@ export interface ExerciseGuideState {
 export interface CalendarState {
   reminderMinutesBefore: number;
   previewOpen: boolean;
+  provider?: CalendarProvider;
 }
 
 export interface ConditionalQuestionItem {

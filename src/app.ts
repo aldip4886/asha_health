@@ -4,7 +4,9 @@ import {
   BIOMARKER_KEYS,
   BIOMARKER_LABELS,
   BiomarkerKey,
+  CalendarProvider,
   ConditionalQuestionItem,
+  DAYS_OF_WEEK,
   DietType,
   ETHNICITY_OPTIONS,
   EquipmentItem,
@@ -36,6 +38,16 @@ import {
 
 const LOADING_MESSAGE_ID = 'ASHA sedang menyiapkan rencanamu...';
 const TOTAL_WIZARD_STEPS = 7;
+
+const DAY_LABELS_ID: Record<(typeof DAYS_OF_WEEK)[number], string> = {
+  Monday: 'Senin',
+  Tuesday: 'Selasa',
+  Wednesday: 'Rabu',
+  Thursday: 'Kamis',
+  Friday: 'Jumat',
+  Saturday: 'Sabtu',
+  Sunday: 'Minggu'
+};
 
 function incrementMinorVersion(version: string): string {
   const match = version.match(/^v(\d+)\.(\d+)$/);
@@ -187,14 +199,16 @@ export function createInitialState(): AshaAppState {
       planType: 'training_and_meal',
       integrationMode: 'optimize_together',
       exerciseVisualMode: 'external_reference',
-      reminderMinutesBefore: 30
+      reminderMinutesBefore: 30,
+      calendarProvider: 'google'
     },
     exerciseGuide: {
       visualMode: 'external_reference'
     },
     calendar: {
       reminderMinutesBefore: 30,
-      previewOpen: false
+      previewOpen: false,
+      provider: 'google'
     },
     personalization: {
       visualPersona: 'neutral',
@@ -511,7 +525,43 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
       `;
     }
 
+    // Step 2 (index 1): Upload Hasil Tes Kesehatan (OCR) ditampilkan sebelum Langkah Ringkasan Kesehatan
     if (step === 1) {
+      const extractedRows = BIOMARKER_KEYS.map((key) => {
+        const item = state.healthReport.extracted[key];
+        if (!item) return '';
+        return `
+          <div class="asha-ocr-row">
+            <strong>${BIOMARKER_LABELS[key]}</strong>
+            <input type="text" data-edit-ocr="${key}" value="${item.normalizedValue ?? ''}" placeholder="Unable to determine" />
+            <span class="asha-badge">${item.confidence}</span>
+          </div>
+        `;
+      }).join('');
+
+      return `
+        <section class="asha-card">
+          <h2>${
+            isId
+              ? '2. Upload Hasil Tes Kesehatan (OCR)'
+              : '2. Upload Health Test Results (Client-Side OCR)'
+          }</h2>
+          <p class="asha-subtitle">${
+            isId
+              ? 'Ekstraksi dilakukan 100% di browser menggunakan Tesseract.js. Verifikasi sebelum dilanjutkan ke Ringkasan Kesehatan.'
+              : 'Extracted 100% in-browser via Tesseract.js. Verify and confirm before proceeding to Health Snapshot.'
+          }</p>
+          <input type="file" data-action="ocr-file" accept=".jpg,.jpeg,.png,.webp" />
+          <div class="asha-ocr-results">${extractedRows}</div>
+          <button type="button" class="asha-primary-btn" data-action="confirm-ocr">${
+            isId ? 'Konfirmasi Hasil Ekstraksi' : 'Confirm Extracted Values'
+          }</button>
+        </section>
+      `;
+    }
+
+    // Step 3 (index 2): Ringkasan Kesehatan (Health Snapshot)
+    if (step === 2) {
       const inputs = BIOMARKER_KEYS.map(
         (key) => `
           <label>
@@ -525,7 +575,7 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
 
       return `
         <section class="asha-card">
-          <h2>${isId ? '2. Ringkasan Kesehatan (Health Snapshot)' : '2. Health Snapshot'}</h2>
+          <h2>${isId ? '3. Ringkasan Kesehatan (Health Snapshot)' : '3. Health Snapshot'}</h2>
           <p class="asha-subtitle">${
             isId
               ? 'Nilai yang dikosongkan akan ditandai "Not provided" dan tidak pernah dikarang.'
@@ -542,41 +592,33 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
       `;
     }
 
-    if (step === 2) {
-      const extractedRows = BIOMARKER_KEYS.map((key) => {
-        const item = state.healthReport.extracted[key];
-        if (!item) return '';
-        return `
-          <div class="asha-ocr-row">
-            <strong>${BIOMARKER_LABELS[key]}</strong>
-            <input type="text" data-edit-ocr="${key}" value="${item.normalizedValue ?? ''}" placeholder="Unable to determine" />
-            <span class="asha-badge">${item.confidence}</span>
-          </div>
-        `;
-      }).join('');
-
-      return `
-        <section class="asha-card">
-          <h2>${isId ? '3. Laporan Kesehatan / OCR' : '3. Health Report / Client-Side OCR'}</h2>
-          <p class="asha-subtitle">${
-            isId
-              ? 'Ekstraksi dilakukan 100% di browser menggunakan Tesseract.js. Verifikasi sebelum digunakan.'
-              : 'Extracted 100% in-browser via Tesseract.js. Verify and confirm before use.'
-          }</p>
-          <input type="file" data-action="ocr-file" accept=".jpg,.jpeg,.png,.webp" />
-          <div class="asha-ocr-results">${extractedRows}</div>
-          <button type="button" data-action="confirm-ocr">${
-            isId ? 'Konfirmasi Hasil Ekstraksi' : 'Confirm Extracted Values'
-          }</button>
-        </section>
-      `;
-    }
-
     if (step === 3) {
       return renderStep4GoalSection(isId);
     }
 
     if (step === 4) {
+      const trainingDayCheckboxes = DAYS_OF_WEEK.map(
+        (day) => `
+          <label class="asha-inline-check">
+            <input type="checkbox" data-training-day="${day}" ${
+              state.schedule.trainingDays.includes(day) ? 'checked' : ''
+            } />
+            <span>${isId ? DAY_LABELS_ID[day] : day}</span>
+          </label>
+        `
+      ).join('');
+
+      const restDayCheckboxes = DAYS_OF_WEEK.map(
+        (day) => `
+          <label class="asha-inline-check">
+            <input type="checkbox" data-rest-day="${day}" ${
+              state.schedule.restDays.includes(day) ? 'checked' : ''
+            } />
+            <span>${isId ? DAY_LABELS_ID[day] : day}</span>
+          </label>
+        `
+      ).join('');
+
       const equipItems: EquipmentItem[] = ['bodyweight', 'dumbbells', 'barbell', 'fitness_ball'];
       const equipCheckboxes = equipItems
         .map(
@@ -591,44 +633,11 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
         )
         .join('');
 
-      return `
-        <section class="asha-card">
-          <h2>${isId ? '5. Jadwal, Peralatan & Diet' : '5. Schedule, Equipment & Diet'}</h2>
-          <div class="asha-grid">
+      const ifConditionalFields =
+        state.nutrition.diet === 'intermittent_fasting'
+          ? `
             <label>
-              <span>${isId ? 'Hari Latihan (pisahkan koma)' : 'Training Days (comma-separated)'}</span>
-              <input type="text" data-field="trainingDays" value="${state.schedule.trainingDays.join(', ')}" placeholder="Monday, Wednesday, Friday" />
-            </label>
-            <label>
-              <span>${isId ? 'Hari Istirahat (pisahkan koma)' : 'Rest Days (comma-separated)'}</span>
-              <input type="text" data-field="restDays" value="${state.schedule.restDays.join(', ')}" placeholder="Tuesday, Thursday, Saturday, Sunday" />
-            </label>
-            <label>
-              <span>${isId ? 'Durasi Sesi (menit)' : 'Session Duration (minutes)'}</span>
-              <input type="number" data-field="sessionDurationMinutes" value="${
-                state.schedule.sessionDurationMinutes ?? ''
-              }" placeholder="45" />
-            </label>
-            <label>
-              <span>${isId ? 'Waktu Latihan Pilihan' : 'Preferred Training Time'}</span>
-              <input type="text" data-field="preferredTime" value="${
-                state.schedule.preferredTime ?? ''
-              }" placeholder="07:00" />
-            </label>
-            <label>
-              <span>${isId ? 'Pola Diet' : 'Diet Preference'}</span>
-              <select data-field="diet">
-                <option value="">${isId ? 'Tidak ditentukan' : 'Not specified'}</option>
-                <option value="no_specific_diet" ${state.nutrition.diet === 'no_specific_diet' ? 'selected' : ''}>No specific diet</option>
-                <option value="vegan" ${state.nutrition.diet === 'vegan' ? 'selected' : ''}>Vegan</option>
-                <option value="vegetarian" ${state.nutrition.diet === 'vegetarian' ? 'selected' : ''}>Vegetarian</option>
-                <option value="carnivore" ${state.nutrition.diet === 'carnivore' ? 'selected' : ''}>Carnivore</option>
-                <option value="keto" ${state.nutrition.diet === 'keto' ? 'selected' : ''}>Keto</option>
-                <option value="intermittent_fasting" ${state.nutrition.diet === 'intermittent_fasting' ? 'selected' : ''}>Intermittent Fasting</option>
-              </select>
-            </label>
-            <label>
-              <span>${isId ? 'Protokol IF (Jika IF)' : 'IF Protocol (If IF)'}</span>
+              <span>${isId ? 'Protokol IF' : 'IF Protocol'}</span>
               <select data-field="fastingProtocol">
                 <option value="">--</option>
                 <option value="12:12" ${state.nutrition.fastingProtocol === '12:12' ? 'selected' : ''}>12:12</option>
@@ -639,14 +648,83 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
               </select>
             </label>
             <label>
-              <span>${isId ? 'Jendela Makan (Jika IF)' : 'Eating Window (If IF)'}</span>
-              <input type="text" data-field="eatingWindow" value="${state.nutrition.eatingWindow ?? ''}" placeholder="12:00 - 20:00" />
+              <span>${isId ? 'Jendela Makan' : 'Eating Window'}</span>
+              <input type="text" data-field="eatingWindow" value="${
+                state.nutrition.eatingWindow ?? ''
+              }" placeholder="12:00 - 20:00" />
             </label>
+          `
+          : '';
+
+      return `
+        <section class="asha-card">
+          <h2>${isId ? '5. Jadwal, Peralatan & Diet' : '5. Schedule, Equipment & Diet'}</h2>
+
+          <div class="asha-session-block">
+            <fieldset class="asha-checkbox-group">
+              <legend>${isId ? 'Pilihan Hari Latihan' : 'Training Days'}</legend>
+              <div class="asha-checkbox-grid">${trainingDayCheckboxes}</div>
+            </fieldset>
+
+            <fieldset class="asha-checkbox-group">
+              <legend>${isId ? 'Pilihan Hari Istirahat' : 'Rest Days'}</legend>
+              <div class="asha-checkbox-grid">${restDayCheckboxes}</div>
+            </fieldset>
+
+            <fieldset class="asha-checkbox-group asha-equipment-group">
+              <legend>${isId ? 'Peralatan yang Tersedia' : 'Available Equipment'}</legend>
+              <div class="asha-checkbox-grid">${equipCheckboxes}</div>
+            </fieldset>
           </div>
-          <fieldset class="asha-equipment-group">
-            <legend>${isId ? 'Peralatan yang Tersedia' : 'Available Equipment'}</legend>
-            ${equipCheckboxes}
-          </fieldset>
+
+          <hr class="asha-session-divider" />
+
+          <div class="asha-session-block">
+            <h3>${isId ? 'Waktu Latihan & Durasi' : 'Training Time & Duration'}</h3>
+            <div class="asha-grid">
+              <label>
+                <span>${isId ? 'Waktu Latihan Pilihan' : 'Preferred Training Time'}</span>
+                <input type="text" data-field="preferredTime" value="${
+                  state.schedule.preferredTime ?? ''
+                }" placeholder="07:00" />
+              </label>
+              <label>
+                <span>${isId ? 'Durasi Sesi (menit)' : 'Session Duration (minutes)'}</span>
+                <input type="number" data-field="sessionDurationMinutes" value="${
+                  state.schedule.sessionDurationMinutes ?? ''
+                }" placeholder="45" />
+              </label>
+            </div>
+          </div>
+
+          <hr class="asha-session-divider" />
+
+          <div class="asha-session-block">
+            <h3>${isId ? 'Pola Diet' : 'Diet Preference'}</h3>
+            <div class="asha-grid">
+              <label>
+                <span>${isId ? 'Pola Diet' : 'Diet Preference'}</span>
+                <select data-field="diet">
+                  <option value="">${isId ? 'Tidak ditentukan' : 'Not specified'}</option>
+                  <option value="no_specific_diet" ${
+                    state.nutrition.diet === 'no_specific_diet' ? 'selected' : ''
+                  }>No specific diet</option>
+                  <option value="vegan" ${state.nutrition.diet === 'vegan' ? 'selected' : ''}>Vegan</option>
+                  <option value="vegetarian" ${
+                    state.nutrition.diet === 'vegetarian' ? 'selected' : ''
+                  }>Vegetarian</option>
+                  <option value="carnivore" ${
+                    state.nutrition.diet === 'carnivore' ? 'selected' : ''
+                  }>Carnivore</option>
+                  <option value="keto" ${state.nutrition.diet === 'keto' ? 'selected' : ''}>Keto</option>
+                  <option value="intermittent_fasting" ${
+                    state.nutrition.diet === 'intermittent_fasting' ? 'selected' : ''
+                  }>Intermittent Fasting</option>
+                </select>
+              </label>
+              ${ifConditionalFields}
+            </div>
+          </div>
         </section>
       `;
     }
@@ -675,8 +753,8 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
         <section class="asha-card">
           <h2>${
             isId
-              ? '6. Tipe Rencana, Referensi Visual & Konteks Fisiologis'
-              : '6. Plan Type, Visual Preferences & Conditional Context'
+              ? '6. Tipe Rencana, Kalender, Referensi Visual & Konteks Fisiologis'
+              : '6. Plan Type, Calendar, Visual Preferences & Conditional Context'
           }</h2>
           <div class="asha-grid">
             <label>
@@ -702,6 +780,20 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
                 <option value="independent" ${
                   state.planning.integrationMode === 'independent' ? 'selected' : ''
                 }>Independent</option>
+              </select>
+            </label>
+            <label>
+              <span>${isId ? 'Pilihan Kalender' : 'Calendar Platform'}</span>
+              <select data-field="calendarProvider">
+                <option value="google" ${
+                  (state.planning.calendarProvider ?? 'google') === 'google' ? 'selected' : ''
+                }>Google</option>
+                <option value="outlook" ${
+                  state.planning.calendarProvider === 'outlook' ? 'selected' : ''
+                }>Outlook</option>
+                <option value="apple" ${
+                  state.planning.calendarProvider === 'apple' ? 'selected' : ''
+                }>Apple</option>
               </select>
             </label>
             <label>
@@ -734,41 +826,20 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
       `;
     }
 
-    // Step 6: Review & Confirmation Screen
+    // Step 7 (index 6): Review & Confirmation Screen (only confirmation shown, no extra buttons after statement)
     applyAssumptionsAndPersonalization(state);
     const personaInfo = resolveVisualPersona(state.personal.sex);
     const healthSummary = BIOMARKER_KEYS.map(
       (k) => `${BIOMARKER_LABELS[k]}: ${state.health[k].value ?? 'Not provided'}`
     ).join(' | ');
 
-    const promptPreview =
-      state.confirmation.confirmed && state.ui.showMasterPrompt
-        ? `
+    const promptPreview = state.confirmation.confirmed
+      ? `
           <div class="asha-prompt-container">
-            <div class="asha-prompt-toolbar">
-              <button type="button" data-action="copy-prompt">${
-                isId ? 'Salin Master Prompt' : 'Copy Master Prompt'
-              }</button>
-              <button type="button" data-action="open-gemini">${
-                isId ? 'Buka Gemini di Tab Baru' : 'Open Gemini in New Tab'
-              }</button>
-            </div>
             <pre class="asha-prompt-box">${generateEnglishMasterPrompt(state)}</pre>
           </div>
         `
-        : '';
-
-    const calendarPreview =
-      state.confirmation.confirmed && state.ui.showCalendarPreview
-        ? `
-          <div class="asha-calendar-preview">
-            <h4>My Training Plan (.ics)</h4>
-            <pre class="asha-prompt-box">${buildTrainingCalendarIcs(state)}</pre>
-            <h4>My Diet Plan (.ics)</h4>
-            <pre class="asha-prompt-box">${buildDietCalendarIcs(state)}</pre>
-          </div>
-        `
-        : '';
+      : '';
 
     return `
       <section class="asha-card asha-review-card">
@@ -799,9 +870,11 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
           <p><strong>Equipment:</strong> ${state.equipment.selected.join(', ')} (${
             state.equipment.fieldState
           })</p>
-          <p><strong>Diet & Plan Type:</strong> ${state.nutrition.diet ?? 'Not provided'} | ${
+          <p><strong>Diet, Plan & Calendar:</strong> ${state.nutrition.diet ?? 'Not provided'} | ${
             state.planning.planType ?? 'training_and_meal'
-          } (${state.planning.integrationMode ?? 'optimize_together'})</p>
+          } (${state.planning.integrationMode ?? 'optimize_together'}) | Calendar: ${(
+            state.planning.calendarProvider ?? 'google'
+          ).toUpperCase()}</p>
           <p><strong>AI Assumptions:</strong> ${
             state.assumptions.length > 0 ? state.assumptions.join(' | ') : 'None'
           }</p>
@@ -823,46 +896,7 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
           }</span>
         </label>
 
-        <div class="asha-review-actions">
-          <button type="button" class="asha-primary-btn" data-action="start-chat" ${
-            !state.confirmation.confirmed ? 'disabled' : ''
-          }>
-            ${isId ? 'Mulai Personal Trainer Chat (ASHA)' : 'Start Personal Trainer Chat (ASHA)'}
-          </button>
-
-          <button type="button" data-action="toggle-prompt" ${
-            !state.confirmation.confirmed ? 'disabled' : ''
-          }>
-            ${isId ? 'Tampilkan Master Prompt (Power User)' : 'Show Master Prompt'}
-          </button>
-
-          <button type="button" data-action="toggle-ics-preview" ${
-            !state.confirmation.confirmed ? 'disabled' : ''
-          }>
-            ${isId ? 'Pratinjau Kalender (.ics)' : 'Preview Calendars (.ics)'}
-          </button>
-
-          <button type="button" data-action="download-training-ics" ${
-            !state.confirmation.confirmed ? 'disabled' : ''
-          }>
-            ${isId ? 'Unduh My Training Plan (.ics)' : 'Download My Training Plan (.ics)'}
-          </button>
-
-          <button type="button" data-action="download-diet-ics" ${
-            !state.confirmation.confirmed ? 'disabled' : ''
-          }>
-            ${isId ? 'Unduh My Diet Plan (.ics)' : 'Download My Diet Plan (.ics)'}
-          </button>
-
-          <button type="button" data-action="download-snapshot" ${
-            !state.confirmation.confirmed ? 'disabled' : ''
-          }>
-            ${isId ? 'Ekspor Context Snapshot (.md)' : 'Export Context Snapshot (.md)'}
-          </button>
-        </div>
-
         ${promptPreview}
-        ${calendarPreview}
       </section>
     `;
   }
@@ -1103,20 +1137,32 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
       updateTimeframe(Number.isNaN(val) ? null : val);
     });
 
-    root.querySelector('[data-field="trainingDays"]')?.addEventListener('change', (e) => {
-      const days = (e.target as HTMLInputElement).value
-        .split(',')
-        .map((d) => d.trim())
-        .filter(Boolean);
-      updateSchedule({ trainingDays: days });
+    root.querySelectorAll('[data-training-day]').forEach((checkbox) => {
+      checkbox.addEventListener('change', () => {
+        const checked: string[] = [];
+        root.querySelectorAll('[data-training-day]').forEach((el) => {
+          const input = el as HTMLInputElement;
+          if (input.checked) {
+            const day = input.getAttribute('data-training-day');
+            if (day) checked.push(day);
+          }
+        });
+        updateSchedule({ trainingDays: checked });
+      });
     });
 
-    root.querySelector('[data-field="restDays"]')?.addEventListener('change', (e) => {
-      const days = (e.target as HTMLInputElement).value
-        .split(',')
-        .map((d) => d.trim())
-        .filter(Boolean);
-      updateSchedule({ restDays: days });
+    root.querySelectorAll('[data-rest-day]').forEach((checkbox) => {
+      checkbox.addEventListener('change', () => {
+        const checked: string[] = [];
+        root.querySelectorAll('[data-rest-day]').forEach((el) => {
+          const input = el as HTMLInputElement;
+          if (input.checked) {
+            const day = input.getAttribute('data-rest-day');
+            if (day) checked.push(day);
+          }
+        });
+        updateSchedule({ restDays: checked });
+      });
     });
 
     root.querySelector('[data-field="sessionDurationMinutes"]')?.addEventListener('change', (e) => {
@@ -1165,6 +1211,11 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
     root.querySelector('[data-field="integrationMode"]')?.addEventListener('change', (e) => {
       const val = (e.target as HTMLSelectElement).value as IntegrationModeOption;
       updatePlanning({ integrationMode: val });
+    });
+
+    root.querySelector('[data-field="calendarProvider"]')?.addEventListener('change', (e) => {
+      const val = (e.target as HTMLSelectElement).value as CalendarProvider;
+      updatePlanning({ calendarProvider: val });
     });
 
     root.querySelector('[data-field="exerciseVisualMode"]')?.addEventListener('change', (e) => {
@@ -1442,6 +1493,9 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
     }
     if (patch.reminderMinutesBefore !== undefined) {
       state.calendar.reminderMinutesBefore = patch.reminderMinutesBefore;
+    }
+    if (patch.calendarProvider) {
+      state.calendar.provider = patch.calendarProvider;
     }
     render();
   }
