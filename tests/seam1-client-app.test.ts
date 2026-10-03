@@ -932,13 +932,37 @@ describe('Seam 1: Client Application Boundary — Ticket 5 (Dual .ics Calendars 
     confirmCheck.checked = true;
     confirmCheck.dispatchEvent(new Event('change'));
 
-    // Verify popup greeting with nickname and random quote
-    const popupEl = root.querySelector('[data-role="prompt-ready-popup"]');
+    // Verify floating navigation bars exist
+    expect(root.querySelectorAll('[data-role="floating-nav"].asha-floating-nav').length).toBe(2);
+    expect(root.querySelector('.asha-floating-nav-top')).not.toBeNull();
+    expect(root.querySelector('.asha-floating-nav-bottom')).not.toBeNull();
+
+    // Verify floating popup overlay and greeting with nickname and random quote
+    const floatingOverlayEl = root.querySelector(
+      '[data-role="floating-popup-overlay"].asha-floating-popup-overlay'
+    );
+    expect(floatingOverlayEl).not.toBeNull();
+
+    const popupEl = root.querySelector('[data-role="prompt-ready-popup"].asha-floating-popup');
     expect(popupEl).not.toBeNull();
     expect(popupEl?.textContent).toContain('Selamat Rina, prompt kamu sudah siap!');
     expect(popupEl?.textContent).toContain(
       'Silakan klik AI Chat Interface favoritmu untuk membuat plan.'
     );
+
+    // Verify downloadable .ics calendar buttons inside the floating popup and multi-week startDate .ics output
+    const downloadTrainingIcsBtn = popupEl?.querySelector('[data-action="download-training-ics"]');
+    const downloadDietIcsBtn = popupEl?.querySelector('[data-action="download-diet-ics"]');
+    expect(downloadTrainingIcsBtn).not.toBeNull();
+    expect(downloadDietIcsBtn).not.toBeNull();
+
+    const trainingIcs = app.generateTrainingCalendarIcs();
+    const dietIcs = app.generateDietCalendarIcs();
+    expect(trainingIcs).toContain('BEGIN:VCALENDAR');
+    expect(trainingIcs).toContain('DTSTART:20261012T061500');
+    expect(trainingIcs).toContain('TRIGGER:-PT45M');
+    expect(dietIcs).toContain('BEGIN:VCALENDAR');
+    expect(dietIcs).toContain('DTSTART:20261012T113000');
 
     // Verify EVERY user-provided field and generated personalization context is in the Master Prompt
     const masterPrompt = app.getMasterPrompt();
@@ -978,6 +1002,17 @@ describe('Seam 1: Client Application Boundary — Ticket 5 (Dual .ics Calendars 
     expect(masterPrompt).toContain('Training Consideration:');
     expect(masterPrompt).toContain('Nutrition Consideration:');
     expect(masterPrompt).toContain('https://darebee.com');
+    expect(masterPrompt).toMatch(/dalam bentuk tabel/i);
+    expect(masterPrompt).toMatch(/My-Training-Plan\.ics/i);
+    expect(masterPrompt).toMatch(/My-Diet-Plan\.ics/i);
+
+    // Verify floating popup close button dismisses the floating popup overlay
+    const closePopupBtn = popupEl?.querySelector(
+      '[data-action="close-popup"]'
+    ) as HTMLButtonElement;
+    expect(closePopupBtn).not.toBeNull();
+    closePopupBtn.click();
+    expect(root.querySelector('[data-role="floating-popup-overlay"]')).toBeNull();
   });
 });
 

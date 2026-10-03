@@ -233,19 +233,23 @@ export function generateEnglishMasterPrompt(state: AshaAppState): string {
     'Explicitly disclose the following assumptions in your Bahasa Indonesia response:',
     ...assumptionLines,
     '',
-    '## 9. DAILY DETAILED PLAN, EXERCISE MOVEMENT GUIDE & GENERATIVE AI .ICS CALENDAR REQUIREMENTS',
-    `- Sajikan Training Plan dan Meal Plan dalam bentuk TERINCI SETIAP HARINYA (day-by-day schedule) dimulai dari tanggal mulai (${
+    '## 9. TABULAR DAILY TRAINING & MEAL PLAN, EXERCISE MOVEMENT GUIDE & DOWNLOADABLE .ICS CALENDAR REQUIREMENTS',
+    `- FORMAT TABEL WAJIB: Sajikan Training Plan dan Meal Plan dalam bentuk TABEL Markdown yang rapi dan terinci SETIAP HARINYA (day-by-day table schedule) dimulai dari tanggal mulai (${
       state.planning.startDate ?? 'hari pertama rencana'
     }) selama seluruh periode pencapaian target pengguna (${durationWeeks} minggu penuh / Hari ke-1 hingga Hari ke-${durationWeeks * 7}).`,
-    '- PANDUAN DETAIL GERAKAN LATIHAN (WAJIB): Selain menyajikan training plan harian, berikan juga informasi lengkap untuk setiap gerakan yang diberikan meliputi:',
+    '- TABEL TRAINING PLAN HARIAN (WAJIB DALAM BENTUK TABEL): Buat tabel jadwal latihan harian dengan kolom:',
+    '  `| Hari & Tanggal | Jenis Latihan | Waktu & Durasi | Nama Gerakan | Set & Repetisi | Otot yang Dilatih | Fungsi / Manfaat Gerakan | Cara Melakukan Gerakan | Contoh Gambar Gerakan (darebee.com) |`',
+    '- PANDUAN DETAIL GERAKAN LATIHAN (WAJIB): Selain menyajikan training plan harian dalam bentuk tabel, berikan informasi lengkap untuk setiap gerakan yang diberikan meliputi:',
     '  1. Nama Gerakan;',
     '  2. Fungsi (manfaat gerakan bagi kebugaran/tujuan pengguna);',
     '  3. Otot yang dilatih (otot utama dan otot pendukung);',
     '  4. Repetisi, jumlah set, tempo, dan waktu istirahat antar set;',
     '  5. Cara melakukan gerakan langkah demi langkah (posisi awal, pelaksanaan gerakan, pola pernapasan, kesalahan umum yang harus dihindari, dan tips keamanan);',
     '  6. Contoh (gambar gerakan): Ambil dan sertakan contoh gambar gerakan / tautan ilustrasi visual langsung dari situs referensi latihan terpercaya seperti https://darebee.com (misalnya pustaka gerakan DAREBEE Video/Illustrated Exercise Library di `https://darebee.com/exercises/` atau workout visual card DAREBEE yang relevan) agar pengguna dapat melihat contoh visual gerakan secara jelas.',
-    '- For each daily meal plan include: daily meals for every single day across the target period, food choices, portion guidance, estimated energy, protein, carbohydrates, fats, fiber, hydration, meal timing, and diet compatibility.',
-    `- GENERATIVE AI CALENDAR (.ICS) OUTPUT: Kalender (.ics) dihasilkan langsung oleh Generative AI setelah prompt ini dimasukkan ke chat interface. Sediakan blok kode file kalender (.ics) standar RFC 5545 yang kompatibel penuh dengan ${calendarLabel} (dimulai pada tanggal ${
+    '- TABEL MEAL PLAN HARIAN (WAJIB DALAM BENTUK TABEL): Buat tabel rencana makan harian untuk setiap hari selama periode target dengan kolom:',
+    '  `| Hari & Tanggal | Waktu Makan | Menu & Porsi | Energi (kkal) | Protein (g) | Karbohidrat (g) | Lemak (g) | Serat (g) & Hidrasi |`',
+    '  For each daily meal plan include: daily meals for every single day across the target period, food choices, portion guidance, estimated energy, protein, carbohydrates, fats, fiber, hydration, meal timing, and diet compatibility.',
+    `- DOWNLOADABLE CALENDAR (.ICS) FILE OUTPUT: Buat file kalender (.ics) yang DAPAT DIUNDUH (downloadable .ics file — \`My-Training-Plan.ics\` dan \`My-Diet-Plan.ics\`) setelah prompt ini dimasukkan ke chat interface. Gunakan fitur pembuatan file/artifact pada AI Chat Interface untuk menghasilkan tautan unduhan file \`.ics\` langsung (serta blok kode RFC 5545 \`.ics\` siap unduh) yang kompatibel penuh dengan ${calendarLabel} (dimulai pada tanggal ${
       state.planning.startDate ?? 'mulai rencana'
     }, lengkap dengan VALARM pengingat ${state.planning.reminderMinutesBefore} menit sebelum jadwal) untuk seluruh jadwal latihan dan makan harian selama ${durationWeeks} minggu.`,
     '- Include recovery habits, monitoring indicators, and clear safety disclaimers (ASHA is educational, not a medical diagnosis or prescription; distinguish personal targets from medical targets).',
@@ -255,9 +259,9 @@ export function generateEnglishMasterPrompt(state: AshaAppState): string {
     '☐ No sex stereotype',
     '☐ Relevant physiological factors considered',
     '☐ Unknown physiological states not invented',
-    '☐ Detailed day-by-day Training & Meal Plan covers full target timeframe',
+    '☐ Training Plan and Meal Plan presented in Markdown tables (dalam bentuk tabel) covering full target timeframe',
     '☐ Detailed exercise guide included (fungsi/manfaat gerakan, otot yang dilatih, repetisi, cara melakukan gerakan, contoh/gambar gerakan dari darebee.com)',
-    '☐ Generative AI outputs valid .ics calendar blocks for selected calendar platform',
+    '☐ Downloadable .ics calendar files (My-Training-Plan.ics & My-Diet-Plan.ics) generated for selected calendar platform',
     '☐ Equipment respected',
     '☐ Diet respected',
     '☐ Safety included',

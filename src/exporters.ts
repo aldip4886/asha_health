@@ -13,15 +13,36 @@ function getLatestAssistantReply(state: AshaAppState): string {
   return '';
 }
 
-const DAY_DATE_MAP: Record<string, string> = {
-  Monday: '20261005',
-  Tuesday: '20261006',
-  Wednesday: '20261007',
-  Thursday: '20261008',
-  Friday: '20261009',
-  Saturday: '20261010',
-  Sunday: '20261011'
+const DAY_INDEX_MAP: Record<string, number> = {
+  Monday: 0,
+  Tuesday: 1,
+  Wednesday: 2,
+  Thursday: 3,
+  Friday: 4,
+  Saturday: 5,
+  Sunday: 6
 };
+
+function resolveBaseMondayDate(startDateStr?: string | null): Date {
+  if (startDateStr && /^\d{4}-\d{2}-\d{2}$/.test(startDateStr)) {
+    const [y, m, d] = startDateStr.split('-').map((n) => parseInt(n, 10));
+    return new Date(Date.UTC(y, m - 1, d));
+  }
+  return new Date(Date.UTC(2026, 9, 5)); // 2026-10-05
+}
+
+function formatUtcDateToken(date: Date): string {
+  const y = date.getUTCFullYear();
+  const m = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const d = String(date.getUTCDate()).padStart(2, '0');
+  return `${y}${m}${d}`;
+}
+
+function addUtcDays(base: Date, daysToAdd: number): Date {
+  const copy = new Date(base.getTime());
+  copy.setUTCDate(copy.getUTCDate() + daysToAdd);
+  return copy;
+}
 
 function formatTimeToken(timeStr: string | null, fallback = '070000'): string {
   if (!timeStr) return fallback;
@@ -41,7 +62,13 @@ export function buildTrainingCalendarIcs(state: AshaAppState): string {
   const preferredTime = state.schedule.preferredTime ?? '07:00';
   const timeToken = formatTimeToken(preferredTime, '070000');
   const reminderMinutes = state.planning.reminderMinutesBefore ?? 30;
+  const weeks = Math.max(1, state.timeframe.durationWeeks ?? 1);
+  const baseDate = resolveBaseMondayDate(state.planning.startDate);
   const latestReply = getLatestAssistantReply(state);
+  const trainingTypesStr =
+    state.schedule.trainingTypes && state.schedule.trainingTypes.length > 0
+      ? state.schedule.trainingTypes.join(', ')
+      : 'General Fitness';
 
   const lines: string[] = [
     'BEGIN:VCALENDAR',
@@ -51,32 +78,41 @@ export function buildTrainingCalendarIcs(state: AshaAppState): string {
     'X-WR-CALNAME:My Training Plan'
   ];
 
-  days.forEach((day, index) => {
-    const dateToken = DAY_DATE_MAP[day] ?? `2026100${Math.min(9, 5 + index)}`;
-    const dayRegex = new RegExp(`(?:Latihan\\s+Hari\\s+${day}|${day})\\s*[:=-]\\s*([^\\r\\n]+)`, 'i');
-    const enrichedMatch = latestReply.match(dayRegex);
-    const summaryDetail = enrichedMatch
-      ? enrichedMatch[1].trim()
-      : `ASHA Training Session (${day}, ${duration} min)`;
+  let eventCounter = 1;
+  for (let week = 0; week < weeks; week++) {
+    days.forEach((day, index) => {
+      const dayOffset = DAY_INDEX_MAP[day] ?? index;
+      const eventDate = addUtcDays(baseDate, week * 7 + dayOffset);
+      const dateToken = formatUtcDateToken(eventDate);
 
-    lines.push(
-      'BEGIN:VEVENT',
-      `UID:asha-training-${index + 1}@asha.local`,
-      `DTSTART:${dateToken}T${timeToken}`,
-      `SUMMARY:${escapeIcsText(summaryDetail)}`,
-      `DESCRIPTION:${escapeIcsText(
-        `Day: ${day} at ${preferredTime} (${duration} minutes). Equipment: ${
-          state.equipment.selected.join(', ') || 'bodyweight'
-        }.`
-      )}`,
-      'BEGIN:VALARM',
-      `TRIGGER:-PT${reminderMinutes}M`,
-      'ACTION:DISPLAY',
-      'DESCRIPTION:ASHA Training Reminder',
-      'END:VALARM',
-      'END:VEVENT'
-    );
-  });
+      const dayRegex = new RegExp(
+        `(?:Latihan\\s+Hari\\s+${day}|${day})\\s*[:=-]\\s*([^\\r\\n]+)`,
+        'i'
+      );
+      const enrichedMatch = latestReply.match(dayRegex);
+      const summaryDetail = enrichedMatch
+        ? enrichedMatch[1].trim()
+        : `ASHA Training Session — Week ${week + 1} (${day}, ${duration} min)`;
+
+      lines.push(
+        'BEGIN:VEVENT',
+        `UID:asha-training-${eventCounter++}@asha.local`,
+        `DTSTART:${dateToken}T${timeToken}`,
+        `SUMMARY:${escapeIcsText(summaryDetail)}`,
+        `DESCRIPTION:${escapeIcsText(
+          `Day: ${day} at ${preferredTime} (${duration} minutes). Types: ${trainingTypesStr}. Equipment: ${
+            state.equipment.selected.join(', ') || 'bodyweight'
+          }.`
+        )}`,
+        'BEGIN:VALARM',
+        `TRIGGER:-PT${reminderMinutes}M`,
+        'ACTION:DISPLAY',
+        'DESCRIPTION:ASHA Training Reminder',
+        'END:VALARM',
+        'END:VEVENT'
+      );
+    });
+  }
 
   lines.push('END:VCALENDAR');
   return lines.join('\r\n');
@@ -89,6 +125,8 @@ export function buildDietCalendarIcs(state: AshaAppState): string {
     : `Diet Preference: ${diet}`;
   const timeToken = formatTimeToken(state.nutrition.eatingWindow, '120000');
   const reminderMinutes = state.planning.reminderMinutesBefore ?? 30;
+  const weeks = Math.max(1, state.timeframe.durationWeeks ?? 1);
+  const baseDate = resolveBaseMondayDate(state.planning.startDate);
   const latestReply = getLatestAssistantReply(state);
 
   const mealMatch = latestReply.match(/(?:Menu\s+Sarapan|Makan\s+Pagi|Meal)\s*[:=-]\s*([^\r\n]+)/i);
@@ -101,21 +139,29 @@ export function buildDietCalendarIcs(state: AshaAppState): string {
     'VERSION:2.0',
     'PRODID:-//ASHA//Personal Health Companion v1.7//ID',
     'CALSCALE:GREGORIAN',
-    'X-WR-CALNAME:My Diet Plan',
-    'BEGIN:VEVENT',
-    'UID:asha-diet-1@asha.local',
-    `DTSTART:20261005T${timeToken}`,
-    `SUMMARY:${escapeIcsText(mealSummary)}`,
-    `DESCRIPTION:${escapeIcsText(windowInfo)}`,
-    'BEGIN:VALARM',
-    `TRIGGER:-PT${reminderMinutes}M`,
-    'ACTION:DISPLAY',
-    'DESCRIPTION:ASHA Nutrition Reminder',
-    'END:VALARM',
-    'END:VEVENT',
-    'END:VCALENDAR'
+    'X-WR-CALNAME:My Diet Plan'
   ];
 
+  const totalDays = weeks * 7;
+  for (let d = 0; d < totalDays; d++) {
+    const eventDate = addUtcDays(baseDate, d);
+    const dateToken = formatUtcDateToken(eventDate);
+    lines.push(
+      'BEGIN:VEVENT',
+      `UID:asha-diet-${d + 1}@asha.local`,
+      `DTSTART:${dateToken}T${timeToken}`,
+      `SUMMARY:${escapeIcsText(mealSummary)}`,
+      `DESCRIPTION:${escapeIcsText(windowInfo)}`,
+      'BEGIN:VALARM',
+      `TRIGGER:-PT${reminderMinutes}M`,
+      'ACTION:DISPLAY',
+      'DESCRIPTION:ASHA Nutrition Reminder',
+      'END:VALARM',
+      'END:VEVENT'
+    );
+  }
+
+  lines.push('END:VCALENDAR');
   return lines.join('\r\n');
 }
 
