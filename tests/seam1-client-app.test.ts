@@ -414,6 +414,13 @@ describe('Seam 1: Client Application Boundary — Ticket 5 (Dual .ics Calendars 
 
     expect(app.getState().ui.currentStep).toBe(0);
 
+    // Step 1 (index 0): Fill in "What should I call you?"
+    const nicknameInput = root.querySelector('input[data-field="nickname"]') as HTMLInputElement;
+    expect(nicknameInput).not.toBeNull();
+    nicknameInput.value = 'Aldi';
+    nicknameInput.dispatchEvent(new Event('change'));
+    expect(app.getState().personal.nickname).toBe('Aldi');
+
     // Step 2 (index 1) must be Health Report OCR Upload (before Health Snapshot)
     app.nextStep();
     expect(app.getState().ui.currentStep).toBe(1);
@@ -446,14 +453,20 @@ describe('Seam 1: Client Application Boundary — Ticket 5 (Dual .ics Calendars 
     expect(root.querySelector('.asha-prompt-box')).toBeNull();
     expect(root.querySelector('[data-role="prompt-ready-popup"]')).toBeNull();
 
-    // Once confirmed: prompt must NOT be displayed on screen, popup message appears, and 5 AI logo links are rendered
+    // Once confirmed: prompt must NOT be displayed on screen, popup message appears with user's nickname and random motivational quote, and 5 AI logo links are rendered
     app.setConfirmed(true);
     expect(root.querySelector('.asha-prompt-box')).toBeNull();
     expect(root.textContent).not.toContain('SELURUH RESPONS HARUS MENGGUNAKAN BAHASA INDONESIA.');
 
     const popup = root.querySelector('[data-role="prompt-ready-popup"]');
     expect(popup).not.toBeNull();
-    expect(popup?.textContent).toMatch(/prompt telah siap/i);
+    expect(popup?.textContent).toContain('Selamat Aldi, prompt kamu sudah siap!');
+    expect(popup?.textContent).toContain(
+      'Silakan klik AI Chat Interface favoritmu untuk membuat plan.'
+    );
+    const quoteEl = root.querySelector('[data-role="motivational-quote"]');
+    expect(quoteEl).not.toBeNull();
+    expect((quoteEl?.textContent ?? '').trim().length).toBeGreaterThan(10);
 
     // Verify ChatGPT, Gemini, Claude, Grok, and Copilot logo links
     const chatgptLink = root.querySelector('[data-ai-provider="chatgpt"]') as HTMLAnchorElement;
@@ -557,7 +570,7 @@ describe('Seam 1: Client Application Boundary — Ticket 5 (Dual .ics Calendars 
     expect(app.getState().goal.target).toContain('< 100 mg/dL');
   });
 
-  it('renders Step 5 with time picker, Select All training days greying out rest days, Tidak Ada (Gunakan Bodyweight) equipment option, top & bottom navigation, and professional Header/Footer', () => {
+  it('renders Step 5 with time picker, Select All training days greying out rest days, Training Types checkboxes before Equipment, Treadmil / Walking Pad & Tidak Ada (Gunakan Bodyweight) equipment options, top & bottom navigation, and professional Header/Footer', () => {
     const root = document.getElementById('app')!;
     const app = createAshaApp({ root });
 
@@ -583,8 +596,43 @@ describe('Seam 1: Client Application Boundary — Ticket 5 (Dual .ics Calendars 
     ) as HTMLInputElement;
     expect(timePicker).not.toBeNull();
 
-    // Equipment must show "Tidak Ada (Gunakan Bodyweight)"
+    // Training Types (Cardio, Strength, Mobility & Flexibility) must appear BEFORE Available Equipment
+    const fieldsets = Array.from(root.querySelectorAll('.asha-session-block fieldset'));
+    const trainingTypesIdx = fieldsets.findIndex((f) =>
+      f.classList.contains('asha-training-types-group')
+    );
+    const equipmentIdx = fieldsets.findIndex((f) => f.classList.contains('asha-equipment-group'));
+    expect(trainingTypesIdx).toBeGreaterThan(-1);
+    expect(equipmentIdx).toBeGreaterThan(trainingTypesIdx);
+
+    const cardioCheck = root.querySelector(
+      'input[type="checkbox"][data-training-type="cardio"]'
+    ) as HTMLInputElement;
+    const strengthCheck = root.querySelector(
+      'input[type="checkbox"][data-training-type="strength"]'
+    ) as HTMLInputElement;
+    const mobilityCheck = root.querySelector(
+      'input[type="checkbox"][data-training-type="mobility_flexibility"]'
+    ) as HTMLInputElement;
+    expect(cardioCheck).not.toBeNull();
+    expect(strengthCheck).not.toBeNull();
+    expect(mobilityCheck).not.toBeNull();
+
+    cardioCheck.checked = true;
+    cardioCheck.dispatchEvent(new Event('change'));
+    expect(app.getState().schedule.trainingTypes).toEqual(['cardio']);
+
+    // Equipment must show "Tidak Ada (Gunakan Bodyweight)" and "Treadmil / Walking Pad"
     expect(root.textContent).toContain('Tidak Ada (Gunakan Bodyweight)');
+    expect(root.textContent).toContain('Treadmil / Walking Pad');
+
+    const treadmillCheck = root.querySelector(
+      'input[type="checkbox"][data-equipment="treadmill_walking_pad"]'
+    ) as HTMLInputElement;
+    expect(treadmillCheck).not.toBeNull();
+    treadmillCheck.checked = true;
+    treadmillCheck.dispatchEvent(new Event('change'));
+    expect(app.getState().equipment.selected).toContain('treadmill_walking_pad');
 
     // Training days and rest days must be checkboxes
     const monTrainCheck = root.querySelector(
@@ -672,6 +720,232 @@ describe('Seam 1: Client Application Boundary — Ticket 5 (Dual .ics Calendars 
     expect(prompt).toMatch(/cara melakukan gerakan/i);
     expect(prompt).toMatch(/contoh.*gambar gerakan/i);
     expect(prompt).toMatch(/darebee\.com/i);
+  });
+
+  it('SMOKE TEST: walks through Steps 1/7 to 7/7 via DOM inputs and verifies every single user input and AI-generated context is included in the Master Prompt', async () => {
+    const root = document.getElementById('app')!;
+    const fakeOcrAdapter = async () => ({
+      rawText: [
+        'Tekanan Darah: 118/76 mmHg',
+        'Detak Jantung Istirahat: 62 bpm',
+        'Glukosa Puasa: 91 mg/dL',
+        'Asam Urat: 5.2 mg/dL',
+        'Kolesterol Total: 185 mg/dL',
+        'LDL: 110 mg/dL',
+        'HDL: 56 mg/dL',
+        'Trigliserida: 95 mg/dL'
+      ].join('\n'),
+      confidenceScore: 95
+    });
+
+    const app = createAshaApp({ root, ocrAdapter: fakeOcrAdapter });
+
+    // --- STEP 1/7: Personal Info ---
+    expect(app.getState().ui.currentStep).toBe(0);
+    const nicknameEl = root.querySelector('input[data-field="nickname"]') as HTMLInputElement;
+    nicknameEl.value = 'Rina';
+    nicknameEl.dispatchEvent(new Event('change'));
+
+    const ageEl = root.querySelector('input[data-field="age"]') as HTMLInputElement;
+    ageEl.value = '31';
+    ageEl.dispatchEvent(new Event('change'));
+
+    const sexEl = root.querySelector('select[data-field="sex"]') as HTMLSelectElement;
+    sexEl.value = 'female';
+    sexEl.dispatchEvent(new Event('change'));
+
+    const heightEl = root.querySelector('input[data-field="height"]') as HTMLInputElement;
+    heightEl.value = '164';
+    heightEl.dispatchEvent(new Event('change'));
+
+    const weightEl = root.querySelector('input[data-field="weight"]') as HTMLInputElement;
+    weightEl.value = '63';
+    weightEl.dispatchEvent(new Event('change'));
+
+    const ethEl = root.querySelector('select[data-field="ethnicity"]') as HTMLSelectElement;
+    ethEl.value = 'Asian';
+    ethEl.dispatchEvent(new Event('change'));
+
+    // --- STEP 2/7: OCR Health Report Upload & Confirmation ---
+    app.nextStep();
+    expect(app.getState().ui.currentStep).toBe(1);
+    await app.uploadHealthReport('medical-checkup.png');
+    const confirmOcrBtn = root.querySelector('[data-action="confirm-ocr"]') as HTMLButtonElement;
+    confirmOcrBtn.click();
+
+    // --- STEP 3/7: Health Snapshot (verify OCR values & add custom indicator) ---
+    app.nextStep();
+    expect(app.getState().ui.currentStep).toBe(2);
+    const otherHealthEl = root.querySelector('input[data-field="health-other"]') as HTMLInputElement;
+    otherHealthEl.value = 'Vitamin D: 32 ng/mL';
+    otherHealthEl.dispatchEvent(new Event('change'));
+
+    // --- STEP 4/7: Aspiration, Target & Timeframe ---
+    app.nextStep();
+    expect(app.getState().ui.currentStep).toBe(3);
+    const aspirationEl = root.querySelector('select[data-field="aspiration"]') as HTMLSelectElement;
+    aspirationEl.value = 'running_performance';
+    aspirationEl.dispatchEvent(new Event('change'));
+
+    const runDistEl = root.querySelector('select[data-field="runningDistance"]') as HTMLSelectElement;
+    runDistEl.value = 'half_marathon';
+    runDistEl.dispatchEvent(new Event('change'));
+
+    const paceEl = root.querySelector('input[data-field="targetPace"]') as HTMLInputElement;
+    paceEl.value = '5:45 /km';
+    paceEl.dispatchEvent(new Event('change'));
+
+    const perfEl = root.querySelector('input[data-field="currentPerformance"]') as HTMLInputElement;
+    perfEl.value = '10K in 58 minutes';
+    perfEl.dispatchEvent(new Event('change'));
+
+    const weeksEl = root.querySelector('input[data-field="durationWeeks"]') as HTMLInputElement;
+    weeksEl.value = '12';
+    weeksEl.dispatchEvent(new Event('change'));
+
+    // --- STEP 5/7: Schedule, Training Types, Equipment, Time & Duration, Diet ---
+    app.nextStep();
+    expect(app.getState().ui.currentStep).toBe(4);
+    for (const day of ['Monday', 'Wednesday', 'Friday', 'Saturday']) {
+      const cb = root.querySelector(
+        `input[type="checkbox"][data-training-day="${day}"]`
+      ) as HTMLInputElement;
+      cb.checked = true;
+      cb.dispatchEvent(new Event('change'));
+    }
+    for (const day of ['Tuesday', 'Thursday', 'Sunday']) {
+      const cb = root.querySelector(
+        `input[type="checkbox"][data-rest-day="${day}"]`
+      ) as HTMLInputElement;
+      cb.checked = true;
+      cb.dispatchEvent(new Event('change'));
+    }
+    for (const tType of ['cardio', 'strength', 'mobility_flexibility']) {
+      const cb = root.querySelector(
+        `input[type="checkbox"][data-training-type="${tType}"]`
+      ) as HTMLInputElement;
+      cb.checked = true;
+      cb.dispatchEvent(new Event('change'));
+    }
+    for (const eq of ['dumbbells', 'treadmill_walking_pad']) {
+      const cb = root.querySelector(
+        `input[type="checkbox"][data-equipment="${eq}"]`
+      ) as HTMLInputElement;
+      cb.checked = true;
+      cb.dispatchEvent(new Event('change'));
+    }
+
+    const prefTimeEl = root.querySelector('input[data-field="preferredTime"]') as HTMLInputElement;
+    prefTimeEl.value = '06:15';
+    prefTimeEl.dispatchEvent(new Event('change'));
+
+    const durMinEl = root.querySelector(
+      'input[data-field="sessionDurationMinutes"]'
+    ) as HTMLInputElement;
+    durMinEl.value = '50';
+    durMinEl.dispatchEvent(new Event('change'));
+
+    const dietEl = root.querySelector('select[data-field="diet"]') as HTMLSelectElement;
+    dietEl.value = 'intermittent_fasting';
+    dietEl.dispatchEvent(new Event('change'));
+
+    const ifProtoEl = root.querySelector(
+      'select[data-field="fastingProtocol"]'
+    ) as HTMLSelectElement;
+    ifProtoEl.value = '16:8';
+    ifProtoEl.dispatchEvent(new Event('change'));
+
+    const eatWinEl = root.querySelector('input[data-field="eatingWindow"]') as HTMLInputElement;
+    eatWinEl.value = '11:30 - 19:30';
+    eatWinEl.dispatchEvent(new Event('change'));
+
+    // --- STEP 6/7: Plan Type, Integration, Start Date, Calendar, Visual Mode, Reminder, Conditionals ---
+    app.nextStep();
+    expect(app.getState().ui.currentStep).toBe(5);
+    const startDateEl = root.querySelector('input[data-field="startDate"]') as HTMLInputElement;
+    startDateEl.value = '2026-10-12';
+    startDateEl.dispatchEvent(new Event('change'));
+
+    const calProvEl = root.querySelector(
+      'select[data-field="calendarProvider"]'
+    ) as HTMLSelectElement;
+    calProvEl.value = 'outlook';
+    calProvEl.dispatchEvent(new Event('change'));
+
+    const remEl = root.querySelector('input[data-field="reminderMinutesBefore"]') as HTMLInputElement;
+    remEl.value = '45';
+    remEl.dispatchEvent(new Event('change'));
+
+    const cycleInput = root.querySelector(
+      'input[data-conditional="menstrual_cycle"]'
+    ) as HTMLInputElement;
+    expect(cycleInput).not.toBeNull();
+    cycleInput.value = 'Reduce high-impact load on day 1-2 of cycle';
+    cycleInput.dispatchEvent(new Event('change'));
+
+    const boneInput = root.querySelector(
+      'input[data-conditional="bone_health"]'
+    ) as HTMLInputElement;
+    expect(boneInput).not.toBeNull();
+    boneInput.value = 'Include tibial & hip bone-loading strength work';
+    boneInput.dispatchEvent(new Event('change'));
+
+    // --- STEP 7/7: Review, Confirm, Popup & Master Prompt Verification ---
+    app.nextStep();
+    expect(app.getState().ui.currentStep).toBe(6);
+
+    const confirmCheck = root.querySelector(
+      'input[type="checkbox"][data-action="toggle-confirm"]'
+    ) as HTMLInputElement;
+    confirmCheck.checked = true;
+    confirmCheck.dispatchEvent(new Event('change'));
+
+    // Verify popup greeting with nickname and random quote
+    const popupEl = root.querySelector('[data-role="prompt-ready-popup"]');
+    expect(popupEl).not.toBeNull();
+    expect(popupEl?.textContent).toContain('Selamat Rina, prompt kamu sudah siap!');
+    expect(popupEl?.textContent).toContain(
+      'Silakan klik AI Chat Interface favoritmu untuk membuat plan.'
+    );
+
+    // Verify EVERY user-provided field and generated personalization context is in the Master Prompt
+    const masterPrompt = app.getMasterPrompt();
+    expect(masterPrompt).toContain('Preferred Name / Nickname: Rina');
+    expect(masterPrompt).toContain('Sapa pengguna dengan nama panggilan "Rina"');
+    expect(masterPrompt).toContain('Age: 31');
+    expect(masterPrompt).toContain('Sex: female');
+    expect(masterPrompt).toContain('Ethnicity: Asian');
+    expect(masterPrompt).toContain('Height: 164 cm');
+    expect(masterPrompt).toContain('Weight: 63 kg');
+    expect(masterPrompt).toContain('Blood Pressure: 118/76 mmHg');
+    expect(masterPrompt).toContain('Resting Heart Rate: 62 bpm');
+    expect(masterPrompt).toContain('Blood Glucose: 91 mg/dL');
+    expect(masterPrompt).toContain('Uric Acid: 5.2 mg/dL');
+    expect(masterPrompt).toContain('Total Cholesterol: 185 mg/dL');
+    expect(masterPrompt).toContain('LDL: 110 mg/dL');
+    expect(masterPrompt).toContain('HDL: 56 mg/dL');
+    expect(masterPrompt).toContain('Triglycerides: 95 mg/dL');
+    expect(masterPrompt).toContain('Other Indicators: Vitamin D: 32 ng/mL');
+    expect(masterPrompt).toContain('Aspiration: Running performance');
+    expect(masterPrompt).toContain('Running Distance: half_marathon');
+    expect(masterPrompt).toContain('Target Pace: 5:45 /km');
+    expect(masterPrompt).toContain('Current Performance / History: 10K in 58 minutes');
+    expect(masterPrompt).toContain('Timeframe: 12 weeks (provided)');
+    expect(masterPrompt).toContain('Training Days: Monday, Wednesday, Friday, Saturday');
+    expect(masterPrompt).toContain('Training Types: Cardio, Strength, Mobility & Flexibility');
+    expect(masterPrompt).toContain('Session Duration: 50 minutes');
+    expect(masterPrompt).toContain('Rest Days: Tuesday, Thursday, Sunday');
+    expect(masterPrompt).toContain('Preferred Training Time: 06:15');
+    expect(masterPrompt).toContain('Equipment: Dumbbells, Treadmill / Walking Pad');
+    expect(masterPrompt).toContain('Diet: Intermittent Fasting (16:8, window: 11:30 - 19:30)');
+    expect(masterPrompt).toContain('Plan Start Date: 2026-10-12');
+    expect(masterPrompt).toContain('Target Calendar Platform: Outlook Calendar (Reminder: 45 minutes before event)');
+    expect(masterPrompt).toContain('menstrual_cycle: Reduce high-impact load on day 1-2 of cycle');
+    expect(masterPrompt).toContain('bone_health: Include tibial & hip bone-loading strength work');
+    expect(masterPrompt).toContain('Sex-Specific Factor:');
+    expect(masterPrompt).toContain('Training Consideration:');
+    expect(masterPrompt).toContain('Nutrition Consideration:');
+    expect(masterPrompt).toContain('https://darebee.com');
   });
 });
 

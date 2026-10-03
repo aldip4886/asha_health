@@ -22,7 +22,8 @@ const BIOMARKER_PATTERNS: BiomarkerPattern[] = [
   },
   {
     key: 'restingHeartRate',
-    lineRegex: /(?:denyut\s*nadi|resting\s*heart\s*rate|\brhr\b|heart\s*rate)\s*[:=-]?\s*([^\r\n]+)/i,
+    lineRegex:
+      /(?:denyut\s*nadi|detak\s*jantung(?:\s*istirahat)?|resting\s*heart\s*rate|\brhr\b|heart\s*rate)\s*[:=-]?\s*([^\r\n]+)/i,
     valueRegex: /(\d{2,3})(?:\s*(bpm|x\/menit))?/i,
     defaultUnit: 'bpm'
   },

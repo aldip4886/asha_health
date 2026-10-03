@@ -60,6 +60,7 @@ export const BIOMARKER_LABELS: Record<BiomarkerKey, string> = {
 };
 
 export interface PersonalInfo {
+  nickname?: string | null;
   age: number | null;
   sex: SexSelection | null;
   ethnicity: string | null;
@@ -131,20 +132,29 @@ export interface TimeframeState {
   fieldState: FieldState;
 }
 
+export type TrainingType = 'cardio' | 'strength' | 'mobility_flexibility';
+
 export interface ScheduleState {
   trainingDays: string[];
+  trainingTypes?: TrainingType[];
   sessionDurationMinutes: number | null;
   restDays: string[];
   preferredTime: string | null;
   fieldStates: {
     trainingDays: FieldState;
+    trainingTypes?: FieldState;
     sessionDurationMinutes: FieldState;
     restDays: FieldState;
     preferredTime: FieldState;
   };
 }
 
-export type EquipmentItem = 'bodyweight' | 'dumbbells' | 'barbell' | 'fitness_ball';
+export type EquipmentItem =
+  | 'bodyweight'
+  | 'dumbbells'
+  | 'barbell'
+  | 'fitness_ball'
+  | 'treadmill_walking_pad';
 
 export interface EquipmentState {
   selected: EquipmentItem[];
@@ -241,6 +251,7 @@ export interface AshaAppState {
     currentStep: number;
     showMasterPrompt: boolean;
     showCalendarPreview: boolean;
+    motivationalQuote?: string | null;
   };
   personal: PersonalInfo;
   health: HealthSnapshot;

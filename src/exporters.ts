@@ -151,6 +151,7 @@ export function buildContextSnapshotMarkdown(
     '# ASHA Context Snapshot',
     '',
     '## Verified Personal & Goal Context',
+    `- Preferred Name / Nickname: ${state.personal.nickname ?? 'Not provided'}`,
     `- Age: ${state.personal.age ?? 'Not provided'}`,
     `- Sex: ${state.personal.sex ?? 'Not provided'}`,
     `- Ethnicity: ${state.personal.ethnicity ?? 'Not provided'}`,
@@ -162,6 +163,7 @@ export function buildContextSnapshotMarkdown(
       state.timeframe.durationWeeks !== null ? `${state.timeframe.durationWeeks} weeks` : 'Not provided'
     }`,
     `- Training Days: ${state.schedule.trainingDays.join(', ') || 'Not provided'}`,
+    `- Training Types: ${(state.schedule.trainingTypes ?? []).join(', ') || 'Not provided'}`,
     `- Session Duration: ${
       state.schedule.sessionDurationMinutes !== null
         ? `${state.schedule.sessionDurationMinutes} minutes`
@@ -174,6 +176,8 @@ export function buildContextSnapshotMarkdown(
     `- Plan Type: ${state.planning.planType ?? 'training_and_meal'} (${
       state.planning.integrationMode ?? 'optimize_together'
     })`,
+    `- Plan Start Date: ${state.planning.startDate ?? 'Not provided'}`,
+    `- Calendar Platform: ${state.planning.calendarProvider ?? 'google'}`,
     '',
     '## Health Snapshot & Confirmed Health Report',
     ...healthLines,

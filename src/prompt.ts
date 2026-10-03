@@ -5,8 +5,10 @@ import {
   BIOMARKER_LABELS,
   CalendarProvider,
   DietType,
+  EquipmentItem,
   ExerciseVisualMode,
-  PlanTypeOption
+  PlanTypeOption,
+  TrainingType
 } from './types';
 
 const ASPIRATION_LABELS: Record<AspirationType, string> = {
@@ -17,6 +19,20 @@ const ASPIRATION_LABELS: Record<AspirationType, string> = {
   improve_overall_health: 'Improve overall health',
   running_performance: 'Running performance',
   improve_health_indicator: 'Improve health indicator'
+};
+
+const TRAINING_TYPE_LABELS: Record<TrainingType, string> = {
+  cardio: 'Cardio',
+  strength: 'Strength',
+  mobility_flexibility: 'Mobility & Flexibility'
+};
+
+const EQUIPMENT_PROMPT_LABELS: Record<EquipmentItem, string> = {
+  bodyweight: 'bodyweight',
+  dumbbells: 'Dumbbells',
+  barbell: 'Barbell',
+  fitness_ball: 'Fitness Ball',
+  treadmill_walking_pad: 'Treadmill / Walking Pad'
 };
 
 const DIET_LABELS: Record<DietType, string> = {
@@ -72,9 +88,16 @@ export function generateEnglishMasterPrompt(state: AshaAppState): string {
     }
   }
 
+  const trainingTypesList =
+    state.schedule.trainingTypes && state.schedule.trainingTypes.length > 0
+      ? `${state.schedule.trainingTypes.map((t) => TRAINING_TYPE_LABELS[t] ?? t).join(', ')}${
+          state.schedule.fieldStates.trainingTypes === 'ai_assumption' ? ' (AI Assumption)' : ''
+        }`
+      : 'Not provided';
+
   const equipmentList =
     state.equipment.selected.length > 0
-      ? `${state.equipment.selected.join(', ')}${
+      ? `${state.equipment.selected.map((e) => EQUIPMENT_PROMPT_LABELS[e] ?? e).join(', ')}${
           state.equipment.fieldState === 'ai_assumption' ? ' (AI Assumption)' : ''
         }`
       : 'bodyweight (AI Assumption)';
@@ -87,6 +110,12 @@ export function generateEnglishMasterPrompt(state: AshaAppState): string {
     answeredConditionals.length > 0
       ? answeredConditionals.map((q) => `- ${q.id}: ${q.answer}`)
       : ['- Voluntary Physiological Context: Not provided / Not required'];
+
+  const sexFactorLines = [
+    ...state.personalization.sexSpecificFactors.map((f) => `- Sex-Specific Factor: ${f}`),
+    ...state.personalization.trainingConsiderations.map((t) => `- Training Consideration: ${t}`),
+    ...state.personalization.nutritionConsiderations.map((n) => `- Nutrition Consideration: ${n}`)
+  ];
 
   const assumptionLines =
     state.assumptions.length > 0
@@ -105,9 +134,13 @@ export function generateEnglishMasterPrompt(state: AshaAppState): string {
     '## 1. MANDATORY OUTPUT LANGUAGE',
     'SELURUH RESPONS HARUS MENGGUNAKAN BAHASA INDONESIA.',
     'All explanations, workout guides, meal plans, safety notes, and ongoing Personal Trainer Chat replies MUST be written in warm, clear Bahasa Indonesia. English is allowed only where technically necessary (such as iCalendar syntax or technical identifiers).',
+    ...(state.personal.nickname
+      ? [`Sapa pengguna dengan nama panggilan "${state.personal.nickname}" secara hangat dalam respons Anda.`]
+      : []),
     'Jangan membuat percakapan Gemini baru. Gunakan percakapan ini sebagai Personal Trainer Chat ASHA (mulai dari rencana v1.0).',
     '',
     '## 2. USER CONTEXT',
+    `- Preferred Name / Nickname: ${state.personal.nickname ?? 'Not provided'}`,
     `- Age: ${state.personal.age ?? 'Not provided'}`,
     `- Sex: ${state.personal.sex ?? 'Not provided'}`,
     `- Ethnicity: ${state.personal.ethnicity ?? 'Not provided'} (never infer ethnicity)`,
@@ -145,12 +178,13 @@ export function generateEnglishMasterPrompt(state: AshaAppState): string {
         : 'Not provided'
     }`,
     '',
-    '## 5. SCHEDULE, EQUIPMENT & DIET',
+    '## 5. SCHEDULE, TRAINING TYPES, EQUIPMENT & DIET',
     `- Training Days: ${
       state.schedule.trainingDays.length > 0
         ? state.schedule.trainingDays.join(', ')
         : 'Not provided'
     }`,
+    `- Training Types: ${trainingTypesList}`,
     `- Session Duration: ${
       state.schedule.sessionDurationMinutes !== null
         ? `${state.schedule.sessionDurationMinutes} minutes`
@@ -192,6 +226,7 @@ export function generateEnglishMasterPrompt(state: AshaAppState): string {
     'Dasarkan rencana terutama pada:',
     '1. tujuan pengguna; 2. kondisi kesehatan; 3. usia; 4. ukuran tubuh; 5. tingkat kebugaran; 6. pengalaman latihan; 7. jadwal; 8. peralatan; 9. beban latihan; 10. pemulihan; 11. faktor fisiologis yang relevan.',
     'Jika informasi penting tidak tersedia, jangan mengarang.',
+    ...sexFactorLines,
     ...conditionalLines,
     '',
     '## AI ASSUMPTIONS',

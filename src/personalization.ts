@@ -62,6 +62,18 @@ export function applyAssumptionsAndPersonalization(state: AshaAppState): void {
     assumptions.push('Preferred training time not specified; assuming morning session at 07:00.');
   }
 
+  if (
+    !state.schedule.trainingTypes ||
+    state.schedule.trainingTypes.length === 0 ||
+    state.schedule.fieldStates.trainingTypes === 'ai_assumption'
+  ) {
+    state.schedule.trainingTypes = ['cardio', 'strength', 'mobility_flexibility'];
+    state.schedule.fieldStates.trainingTypes = 'ai_assumption';
+    assumptions.push(
+      'Training types not specified; assuming a balanced combination of Cardio, Strength, and Mobility & Flexibility.'
+    );
+  }
+
   state.assumptions = assumptions;
 
   // 4. Sex-Aware Context & Conditional Questions (strictly separate from Visual Persona)

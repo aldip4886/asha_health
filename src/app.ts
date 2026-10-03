@@ -24,7 +24,8 @@ import {
   PlanTypeOption,
   RunningDistance,
   ScheduleState,
-  SexSelection
+  SexSelection,
+  TrainingType
 } from './types';
 import { applyPersonaBackgroundToDom, resolveVisualPersona } from './persona';
 import { defaultTesseractOcrAdapter, parseHealthReportText } from './ocr';
@@ -38,6 +39,20 @@ import {
 
 const LOADING_MESSAGE_ID = 'ASHA sedang menyiapkan rencanamu...';
 const TOTAL_WIZARD_STEPS = 7;
+
+export const MOTIVATIONAL_QUOTES: readonly string[] = [
+  'Langkah kecil hari ini adalah awal dari perubahan besar esok hari. Kamu pasti bisa!',
+  'Konsistensi lebih penting daripada kesempurnaan. Terus bergerak maju!',
+  'Tubuh yang sehat dibangun dari kebiasaan baik yang dilakukan setiap hari.',
+  'Setiap tetes keringat hari ini adalah investasi terbaik untuk masa depanmu.',
+  'Jangan tunggu sempurna untuk memulai — mulailah sekarang dan jadilah lebih kuat setiap hari!',
+  'Disiplin adalah jembatan antara target kesehatanmu dan pencapaian nyata.'
+];
+
+function pickRandomMotivationalQuote(): string {
+  const index = Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length);
+  return MOTIVATIONAL_QUOTES[index] ?? MOTIVATIONAL_QUOTES[0];
+}
 
 const DAY_LABELS_ID: Record<(typeof DAYS_OF_WEEK)[number], string> = {
   Monday: 'Senin',
@@ -133,9 +148,11 @@ export function createInitialState(): AshaAppState {
       language: 'id',
       currentStep: 0,
       showMasterPrompt: false,
-      showCalendarPreview: false
+      showCalendarPreview: false,
+      motivationalQuote: null
     },
     personal: {
+      nickname: null,
       age: null,
       sex: null,
       ethnicity: null,
@@ -176,11 +193,13 @@ export function createInitialState(): AshaAppState {
     },
     schedule: {
       trainingDays: [],
+      trainingTypes: [],
       sessionDurationMinutes: null,
       restDays: [],
       preferredTime: null,
       fieldStates: {
         trainingDays: 'missing',
+        trainingTypes: 'missing',
         sessionDurationMinutes: 'missing',
         restDays: 'missing',
         preferredTime: 'missing'
@@ -485,6 +504,12 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
           }</p>
           <div class="asha-grid">
             <label>
+              <span>${isId ? 'What should I call you? (Nama Panggilan)' : 'What should I call you?'}</span>
+              <input type="text" data-field="nickname" value="${
+                state.personal.nickname ?? ''
+              }" placeholder="${isId ? 'Contoh: Budi / Sari' : 'e.g., Alex'}" />
+            </label>
+            <label>
               <span>${isId ? 'Usia (tahun)' : 'Age (years)'}</span>
               <input type="number" data-field="age" value="${state.personal.age ?? ''}" placeholder="35" />
             </label>
@@ -629,13 +654,40 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
         `
       ).join('');
 
+      const trainingTypeLabels: Record<TrainingType, string> = {
+        cardio: 'Cardio',
+        strength: 'Strength',
+        mobility_flexibility: 'Mobility & Flexibility'
+      };
+      const trainingTypeItems: TrainingType[] = ['cardio', 'strength', 'mobility_flexibility'];
+      const selectedTrainingTypes = state.schedule.trainingTypes ?? [];
+      const trainingTypeCheckboxes = trainingTypeItems
+        .map(
+          (item) => `
+            <label class="asha-inline-check">
+              <input type="checkbox" data-training-type="${item}" ${
+                selectedTrainingTypes.includes(item) ? 'checked' : ''
+              } />
+              <span>${trainingTypeLabels[item]}</span>
+            </label>
+          `
+        )
+        .join('');
+
       const equipLabels: Record<EquipmentItem, string> = {
         bodyweight: isId ? 'Tidak Ada (Gunakan Bodyweight)' : 'None (Use Bodyweight)',
         dumbbells: 'Dumbbells',
         barbell: 'Barbell',
-        fitness_ball: 'Fitness Ball'
+        fitness_ball: 'Fitness Ball',
+        treadmill_walking_pad: 'Treadmil / Walking Pad'
       };
-      const equipItems: EquipmentItem[] = ['bodyweight', 'dumbbells', 'barbell', 'fitness_ball'];
+      const equipItems: EquipmentItem[] = [
+        'bodyweight',
+        'dumbbells',
+        'barbell',
+        'fitness_ball',
+        'treadmill_walking_pad'
+      ];
       const equipCheckboxes = equipItems
         .map(
           (item) => `
@@ -695,6 +747,11 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
             }" ${allTrainingDaysSelected ? 'disabled' : ''}>
               <legend>${isId ? 'Pilihan Hari Istirahat' : 'Rest Days'}</legend>
               <div class="asha-checkbox-grid">${restDayCheckboxes}</div>
+            </fieldset>
+
+            <fieldset class="asha-checkbox-group asha-training-types-group">
+              <legend>${isId ? 'Jenis Latihan' : 'Training Types'}</legend>
+              <div class="asha-checkbox-grid">${trainingTypeCheckboxes}</div>
             </fieldset>
 
             <fieldset class="asha-checkbox-group asha-equipment-group">
@@ -863,21 +920,22 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
       (k) => `${BIOMARKER_LABELS[k]}: ${state.health[k].value ?? 'Not provided'}`
     ).join(' | ');
 
+    const displayName =
+      state.personal.nickname && state.personal.nickname.trim().length > 0
+        ? state.personal.nickname.trim()
+        : isId
+        ? 'Sahabat ASHA'
+        : 'Friend';
+    const quoteText = state.ui.motivationalQuote ?? pickRandomMotivationalQuote();
+
     const promptReadySection = state.confirmation.confirmed
       ? `
-          <div class="asha-prompt-ready-popup" data-role="prompt-ready-popup" role="alert" aria-live="polite">
+          <div class="asha-prompt-ready-popup" data-role="prompt-ready-popup" role="dialog" aria-live="polite">
             <div class="asha-popup-badge">✓</div>
             <div class="asha-popup-body">
-              <strong>${
-                isId
-                  ? 'Prompt telah siap dan berhasil disalin ke clipboard Anda!'
-                  : 'Prompt is ready and has been copied to your clipboard!'
-              }</strong>
-              <p>${
-                isId
-                  ? 'Silakan pilih salah satu platform AI di bawah ini, lalu tempel (Ctrl+V / Paste) prompt Anda pada kolom chat.'
-                  : 'Select one of the AI platforms below, then paste (Ctrl+V) your prompt into the chat interface.'
-              }</p>
+              <strong class="asha-popup-greeting">Selamat ${displayName}, prompt kamu sudah siap!</strong>
+              <p class="asha-popup-instruction">Silakan klik AI Chat Interface favoritmu untuk membuat plan.</p>
+              <blockquote class="asha-popup-quote" data-role="motivational-quote">“${quoteText}”</blockquote>
             </div>
           </div>
 
@@ -983,6 +1041,8 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
               : 'Sex will be used as contextual information. No sex-based training stereotype will be applied.'
           }</p>
           <p><strong>${isId ? 'Informasi Pribadi' : 'Personal Info'}:</strong> ${
+            state.personal.nickname ?? 'Not provided'
+          } | ${
             state.personal.age ?? 'Not provided'
           } yrs | ${state.personal.sex ?? 'Not provided'} | ${
             state.personal.height !== null ? `${state.personal.height} cm` : 'Not provided'
@@ -995,9 +1055,11 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
           } — ${state.goal.target ?? 'Not provided'} (${
             state.timeframe.durationWeeks ?? 8
           } weeks)</p>
-          <p><strong>Schedule:</strong> ${state.schedule.trainingDays.join(', ')} (${
+          <p><strong>Schedule & Training Types:</strong> ${state.schedule.trainingDays.join(', ')} (${
             state.schedule.sessionDurationMinutes ?? 45
-          } min at ${state.schedule.preferredTime ?? '07:00'}) | Rest: ${state.schedule.restDays.join(', ')}</p>
+          } min at ${state.schedule.preferredTime ?? '07:00'}) | Types: ${(
+            state.schedule.trainingTypes ?? []
+          ).join(', ')} | Rest: ${state.schedule.restDays.join(', ')}</p>
           <p><strong>Equipment:</strong> ${state.equipment.selected.join(', ')} (${
             state.equipment.fieldState
           })</p>
@@ -1206,6 +1268,11 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
       btn.addEventListener('click', () => clearSession());
     });
 
+    root.querySelector('[data-field="nickname"]')?.addEventListener('change', (e) => {
+      const val = (e.target as HTMLInputElement).value.trim();
+      updatePersonal({ nickname: val || null });
+    });
+
     root.querySelector('[data-field="sex"]')?.addEventListener('change', (e) => {
       const val = (e.target as HTMLSelectElement).value as SexSelection | '';
       updatePersonal({ sex: val ? val : null });
@@ -1358,6 +1425,20 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
           }
         });
         updateSchedule({ restDays: checked });
+      });
+    });
+
+    root.querySelectorAll('[data-training-type]').forEach((checkbox) => {
+      checkbox.addEventListener('change', () => {
+        const checked: TrainingType[] = [];
+        root.querySelectorAll('[data-training-type]').forEach((el) => {
+          const input = el as HTMLInputElement;
+          if (input.checked) {
+            const tType = input.getAttribute('data-training-type') as TrainingType | null;
+            if (tType) checked.push(tType);
+          }
+        });
+        updateSchedule({ trainingTypes: checked });
       });
     });
 
@@ -1655,6 +1736,11 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
       state.schedule.fieldStates.trainingDays =
         patch.trainingDays.length > 0 ? 'provided' : 'missing';
     }
+    if (patch.trainingTypes !== undefined) {
+      state.schedule.trainingTypes = patch.trainingTypes;
+      state.schedule.fieldStates.trainingTypes =
+        patch.trainingTypes.length > 0 ? 'provided' : 'missing';
+    }
     if (patch.sessionDurationMinutes !== undefined) {
       state.schedule.sessionDurationMinutes = patch.sessionDurationMinutes;
       state.schedule.fieldStates.sessionDurationMinutes =
@@ -1724,6 +1810,9 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
   function setConfirmed(confirmed: boolean) {
     if (confirmed) {
       applyAssumptionsAndPersonalization(state);
+      state.ui.motivationalQuote = pickRandomMotivationalQuote();
+    } else {
+      state.ui.motivationalQuote = null;
     }
     state.confirmation.confirmed = confirmed;
     state.personalization.confirmed = confirmed;
