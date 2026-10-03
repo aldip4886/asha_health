@@ -253,20 +253,6 @@ export function generateEnglishMasterPrompt(state: AshaAppState): string {
     `- Buat file kalender (.ics) yang DAPAT DIUNDUH (downloadable .ics file — \`My-Training-Plan.ics\` dan \`My-Diet-Plan.ics\`) setelah prompt ini dimasukkan ke chat interface. Gunakan fitur pembuatan file/artifact pada AI Chat Interface untuk menghasilkan tautan unduhan file \`.ics\` langsung (serta blok kode RFC 5545 \`.ics\` siap unduh) yang kompatibel penuh dengan ${calendarLabel} (dimulai pada tanggal ${
       state.planning.startDate ?? 'mulai rencana'
     }, lengkap dengan VALARM pengingat ${state.planning.reminderMinutesBefore} menit sebelum jadwal) untuk seluruh jadwal latihan dan makan harian selama ${durationWeeks} minggu.`,
-    '- Include recovery habits, monitoring indicators, and clear safety disclaimers (ASHA is educational, not a medical diagnosis or prescription; distinguish personal targets from medical targets).',
-    '',
-    '## 10. QUALITY CONTROL CHECKLIST',
-    '☐ Sex used contextually',
-    '☐ No sex stereotype',
-    '☐ Relevant physiological factors considered',
-    '☐ Unknown physiological states not invented',
-    '☐ Training Plan and Meal Plan presented in Markdown tables (dalam bentuk tabel) covering full target timeframe',
-    '☐ Detailed exercise guide included (fungsi/manfaat gerakan, otot yang dilatih, repetisi, cara melakukan gerakan, contoh/gambar gerakan dari darebee.com)',
-    '☐ Downloadable .ics calendar files (My-Training-Plan.ics & My-Diet-Plan.ics) generated for selected calendar platform',
-    '☐ Equipment respected',
-    '☐ Diet respected',
-    '☐ Safety included',
-    '☐ Assumptions disclosed',
-    '☐ Bahasa Indonesia used'
+    '- Include recovery habits, monitoring indicators, and clear safety disclaimers (ASHA is educational, not a medical diagnosis or prescription; distinguish personal targets from medical targets).'
   ].join('\n');
 }

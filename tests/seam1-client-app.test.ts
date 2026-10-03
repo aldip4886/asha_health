@@ -1031,6 +1031,7 @@ describe('Seam 1: Client Application Boundary — Ticket 5 (Dual .ics Calendars 
     expect(masterPrompt).toContain(
       'Hasilkan file .ics untuk training plan yang disusun yang siap saya download dan impor ke kalender saya'
     );
+    expect(masterPrompt).not.toContain('QUALITY CONTROL CHECKLIST');
 
     // Verify floating popup close button dismisses the floating popup overlay
     const closePopupBtn = popupEl?.querySelector(
