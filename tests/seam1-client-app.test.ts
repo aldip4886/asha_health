@@ -771,6 +771,24 @@ describe('Seam 1: Client Application Boundary — Ticket 5 (Dual .ics Calendars 
 
     const app = createAshaApp({ root, ocrAdapter: fakeOcrAdapter });
 
+    // --- WELCOME SCREEN / LANDING PAGE (.asha-hero-card p-4 mb-4 text-center mx-auto) ---
+    const welcomeLanding = root.querySelector('main[data-role="welcome-landing"]');
+    expect(welcomeLanding).not.toBeNull();
+    const heroCard = welcomeLanding?.querySelector('.asha-hero-card.p-4.mb-4.text-center.mx-auto');
+    expect(heroCard).not.toBeNull();
+    expect(heroCard?.textContent).toContain('Selamat Datang di ASHA');
+
+    const wizardModalBefore = root.querySelector('#ashaWizardModal');
+    expect(wizardModalBefore?.classList.contains('show')).toBe(false);
+
+    const openWizardBtn = heroCard?.querySelector('[data-action="open-wizard"]') as HTMLButtonElement;
+    expect(openWizardBtn).not.toBeNull();
+    expect(openWizardBtn.textContent).toContain('Mulai Buat Rencana');
+    openWizardBtn.click();
+
+    const wizardModalAfter = root.querySelector('#ashaWizardModal');
+    expect(wizardModalAfter?.classList.contains('show')).toBe(true);
+
     // --- STEP 1/7: Personal Info ---
     expect(app.getState().ui.currentStep).toBe(0);
     const nicknameEl = root.querySelector('input[data-field="nickname"]') as HTMLInputElement;

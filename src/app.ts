@@ -321,6 +321,7 @@ export interface CreateAshaAppOptions {
 
 export function createAshaApp(options: CreateAshaAppOptions = {}) {
   let state: AshaAppState = createInitialState();
+  let wizardOpen = false;
   const root = options.root;
   const ocrAdapter: OcrAdapter = options.ocrAdapter ?? defaultTesseractOcrAdapter;
   const geminiBridge: GeminiBridgeAdapter = options.geminiBridge ?? defaultAppsScriptBridge;
@@ -1536,107 +1537,31 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
           </div>
         </header>
 
-        <div class="asha-shell container">
-          <!-- Hero Welcome Section -->
-          <section class="asha-hero-card p-4 mb-4 text-center mx-auto" style="max-width: 760px;">
-            <img src="pics/logo.png" alt="ASHA Logo" height="56" class="mb-2" />
-            <h2 class="h4 fw-bold text-dark mb-2">${
+        <!-- Main Content (Welcome Screen / Landing Page) -->
+        <main class="asha-shell container flex-grow-1 d-flex flex-column justify-content-center align-items-center text-center px-3 py-5" data-role="welcome-landing">
+          <div class="asha-hero-card p-4 mb-4 text-center mx-auto bg-white bg-opacity-90 p-md-5 rounded-4 shadow-lg border border-light" data-role="welcome-hero-card" style="max-width: 600px; backdrop-filter: blur(10px);">
+            <img src="pics/logo.png" alt="ASHA Logo" height="80" class="mb-4" />
+            <h2 class="fw-bold text-dark mb-3">${
               isId ? 'Selamat Datang di ASHA' : 'Welcome to ASHA'
             }</h2>
-            <p class="text-muted small mb-0">
+            <p class="text-muted mb-4">
               ${
                 isId
                   ? 'ASHA mengubah informasi kesehatan, aspirasi, jadwal, dan preferensi Anda menjadi <b>Master Prompt</b> yang komprehensif. Mulai bangun rencana kesehatan Anda sekarang.'
-                  : 'ASHA transforms your health snapshot, aspirations, schedule, and preferences into a comprehensive <b>Master Prompt</b>.'
+                  : 'ASHA transforms your health snapshot, aspirations, schedule, and preferences into a comprehensive <b>Master Prompt</b>. Start building your health plan now.'
               }
             </p>
-          </section>
+            <button
+              type="button"
+              class="btn btn-asha btn-lg px-5 py-3 rounded-pill fw-semibold"
+              data-action="open-wizard"
+            >
+              ${isId ? 'Mulai Buat Rencana' : 'Start Building Plan'}
+            </button>
+          </div>
 
-          <!-- Main Content (Modal Dialog Form Wizard) -->
-          <main class="asha-main" id="ashaWizardModal">
-            <div class="modal-dialog modal-xl modal-dialog-centered asha-wizard-modal-dialog" role="document" data-role="wizard-modal-dialog">
-              <div class="modal-content border-0 shadow-lg rounded-4 asha-wizard-modal-content">
-                <!-- Modal Header dengan Step Indicator & Timeline Dot -->
-                <div class="modal-header flex-column align-items-stretch bg-light border-bottom-0 rounded-top-4 pt-4 pb-3 px-4 px-md-5 asha-wizard-modal-header">
-                  <div class="d-flex justify-content-between align-items-center mb-2">
-                    <div class="d-flex align-items-center">
-                      <img src="pics/logo.png" alt="Logo" height="30" class="me-2" />
-                      <h5 class="modal-title fw-bold text-asha-blue m-0" id="ashaWizardModalLabel">
-                        ${isId ? 'Perencanaan Kesehatan' : 'Personal Health Planning'}
-                      </h5>
-                    </div>
-                    <span class="badge bg-asha-blue text-white rounded-pill px-3">
-                      ${isId ? 'Langkah' : 'Step'} ${currentStepNumber} / ${TOTAL_WIZARD_STEPS}
-                    </span>
-                  </div>
-
-                  <!-- Progress Bar & Text -->
-                  <div class="d-flex justify-content-between text-muted small fw-medium">
-                    <span id="stepLabel">${
-                      isId
-                        ? `Langkah ${currentStepNumber} dari ${TOTAL_WIZARD_STEPS}: ${stepTitle}`
-                        : `Step ${currentStepNumber} of ${TOTAL_WIZARD_STEPS}: ${stepTitle}`
-                    }</span>
-                    <span id="stepPercentage" class="text-asha-blue fw-bold">${progressPercent}%</span>
-                  </div>
-                  <div class="wizard-progress-container">
-                    <div class="wizard-progress-bar" id="wizardProgress" style="width: ${progressPercent}%;"></div>
-                  </div>
-                </div>
-
-                <!-- Modal Body (Form Content) -->
-                <div class="modal-body px-4 px-md-5 py-4 asha-wizard-modal-body" id="wizardModalBody">
-                  <div id="smartwizard" class="sw-main sw-theme-dots asha-timeline-wizard" data-role="smartwizard">
-                    ${renderTimelineDotStepTabs(isId)}
-                    <div class="sw-container tab-content asha-wizard-step-transition">
-                      <div id="step-${currentStepNumber}" class="tab-pane step-content step-container active" style="display: block;">
-                        ${renderStepContent(isId)}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Modal Footer Navigation -->
-                <div class="modal-footer justify-content-between border-top-0 px-4 px-md-5 pb-4 pt-0">
-                  <button
-                    type="button"
-                    class="btn btn-outline-secondary px-4"
-                    id="btnPrev"
-                    data-action="prev-step"
-                    ${state.ui.currentStep === 0 ? 'disabled' : ''}
-                  >
-                    ${isId ? 'Sebelumnya' : 'Back'}
-                  </button>
-                  <div>
-                    <button
-                      type="button"
-                      class="btn btn-link text-danger text-decoration-none me-3 fw-medium"
-                      id="btnReset"
-                      data-action="start-over"
-                    >
-                      ${isId ? 'Mulai Lagi' : 'Start Over'}
-                    </button>
-                    ${
-                      state.ui.currentStep < TOTAL_WIZARD_STEPS - 1
-                        ? `<button type="button" class="btn btn-asha px-4 fw-medium" id="btnNext" data-action="next-step">${
-                            state.ui.currentStep === TOTAL_WIZARD_STEPS - 2
-                              ? isId
-                                ? 'Review Data'
-                                : 'Review Data'
-                              : isId
-                              ? 'Selanjutnya'
-                              : 'Next'
-                          }</button>`
-                        : ''
-                    }
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            ${renderChatPanel(isId)}
-          </main>
-        </div>
+          ${renderChatPanel(isId)}
+        </main>
 
         <!-- Footer -->
         <footer class="asha-footer bg-white bg-opacity-75 backdrop-blur border-top py-3 mt-auto text-center">
@@ -1646,6 +1571,105 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
             </p>
           </div>
         </footer>
+      </div>
+
+      <!-- Modal Bootstrap untuk Form Wizard -->
+      <div
+        class="modal fade ${wizardOpen ? 'show d-block asha-wizard-modal-open' : ''}"
+        id="ashaWizardModal"
+        data-bs-backdrop="static"
+        tabindex="-1"
+        aria-labelledby="ashaWizardModalLabel"
+        aria-hidden="${wizardOpen ? 'false' : 'true'}"
+      >
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable asha-wizard-modal-dialog" role="document" data-role="wizard-modal-dialog">
+          <div class="modal-content border-0 shadow-lg rounded-4 asha-wizard-modal-content">
+            <!-- Modal Header dengan Step Indicator & Timeline Dot -->
+            <div class="modal-header flex-column align-items-stretch bg-light border-bottom-0 rounded-top-4 pt-4 pb-3 px-4 px-md-5 asha-wizard-modal-header">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex align-items-center">
+                  <img src="pics/logo.png" alt="Logo" height="30" class="me-2" />
+                  <h5 class="modal-title fw-bold text-asha-blue m-0" id="ashaWizardModalLabel">
+                    ${isId ? 'Perencanaan Kesehatan' : 'Personal Health Planning'}
+                  </h5>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                  <span class="badge bg-asha-blue text-white rounded-pill px-3">
+                    ${isId ? 'Langkah' : 'Step'} ${currentStepNumber} / ${TOTAL_WIZARD_STEPS}
+                  </span>
+                  <button
+                    type="button"
+                    class="btn-close"
+                    data-action="close-wizard"
+                    aria-label="Close"
+                    title="${isId ? 'Tutup Formulir' : 'Close Wizard'}"
+                  ></button>
+                </div>
+              </div>
+
+              <!-- Progress Bar & Text -->
+              <div class="d-flex justify-content-between text-muted small fw-medium">
+                <span id="stepLabel">${
+                  isId
+                    ? `Langkah ${currentStepNumber} dari ${TOTAL_WIZARD_STEPS}: ${stepTitle}`
+                    : `Step ${currentStepNumber} of ${TOTAL_WIZARD_STEPS}: ${stepTitle}`
+                }</span>
+                <span id="stepPercentage" class="text-asha-blue fw-bold">${progressPercent}%</span>
+              </div>
+              <div class="wizard-progress-container">
+                <div class="wizard-progress-bar" id="wizardProgress" style="width: ${progressPercent}%;"></div>
+              </div>
+            </div>
+
+            <!-- Modal Body (Form Content) -->
+            <div class="modal-body px-4 px-md-5 py-4 asha-wizard-modal-body" id="wizardModalBody">
+              <div id="smartwizard" class="sw-main sw-theme-dots asha-timeline-wizard" data-role="smartwizard">
+                ${renderTimelineDotStepTabs(isId)}
+                <div class="sw-container tab-content asha-wizard-step-transition">
+                  <div id="step-${currentStepNumber}" class="tab-pane step-content step-container active" style="display: block;">
+                    ${renderStepContent(isId)}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Modal Footer Navigation -->
+            <div class="modal-footer justify-content-between border-top-0 px-4 px-md-5 pb-4 pt-0">
+              <button
+                type="button"
+                class="btn btn-outline-secondary px-4"
+                id="btnPrev"
+                data-action="prev-step"
+                ${state.ui.currentStep === 0 ? 'disabled' : ''}
+              >
+                ${isId ? 'Sebelumnya' : 'Back'}
+              </button>
+              <div>
+                <button
+                  type="button"
+                  class="btn btn-link text-danger text-decoration-none me-3 fw-medium"
+                  id="btnReset"
+                  data-action="start-over"
+                >
+                  ${isId ? 'Mulai Lagi' : 'Start Over'}
+                </button>
+                ${
+                  state.ui.currentStep < TOTAL_WIZARD_STEPS - 1
+                    ? `<button type="button" class="btn btn-asha px-4 fw-medium" id="btnNext" data-action="next-step">${
+                        state.ui.currentStep === TOTAL_WIZARD_STEPS - 2
+                          ? isId
+                            ? 'Review Data'
+                            : 'Review Data'
+                          : isId
+                          ? 'Selanjutnya'
+                          : 'Next'
+                      }</button>`
+                    : ''
+                }
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     `;
 
@@ -1661,6 +1685,14 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
     root
       .querySelector('[data-action="clear-session"]')
       ?.addEventListener('click', () => clearSession());
+    root.querySelector('[data-action="open-wizard"]')?.addEventListener('click', () => {
+      wizardOpen = true;
+      render();
+    });
+    root.querySelector('[data-action="close-wizard"]')?.addEventListener('click', () => {
+      wizardOpen = false;
+      render();
+    });
     root.querySelectorAll('[data-action="prev-step"]').forEach((btn) => {
       btn.addEventListener('click', () => prevStep());
     });

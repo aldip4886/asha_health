@@ -320,18 +320,25 @@ input[type="checkbox"]:checked {
   gap: 0.5rem;
 }
 
-/* Wizard Modal Card Styling matching asha_prompt_generator_v1_7_bootstrap_5.html */
+/* Wizard Modal Overlay Styling matching asha_prompt_generator_v1_7_bootstrap_5.html */
+.asha-wizard-modal-open {
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(4px);
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
 .asha-wizard-modal-dialog {
-  max-width: 100%;
-  margin: 0 auto 1.25rem auto;
+  max-width: 1140px;
+  margin: 1.75rem auto;
+  padding: 0 1rem;
 }
 
 .asha-wizard-modal-content {
-  background: rgba(255, 255, 255, 0.96);
-  backdrop-filter: blur(10px);
+  background: #ffffff;
   border-radius: 1rem;
   border: 0;
-  box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.15);
+  box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175);
   overflow: hidden;
 }
 
