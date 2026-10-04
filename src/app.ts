@@ -1343,11 +1343,11 @@ export function createAshaApp(options: CreateAshaAppOptions = {}) {
 
         <div class="card bg-asha-blue bg-opacity-10 border-asha-blue mt-3">
           <div class="card-body p-3">
-            <label class="asha-confirm-checkbox form-check-label m-0 p-0 border-0 bg-transparent">
+            <label class="asha-confirm-checkbox form-check-label m-0 p-0 border-0 bg-transparent text-white">
               <input type="checkbox" class="form-check-input" id="confirmation_cb" data-action="toggle-confirm" ${
                 state.confirmation.confirmed ? 'checked' : ''
               } />
-              <span class="fw-medium ms-2 text-dark">${
+              <span class="fw-medium ms-2 text-white">${
                 isId
                   ? 'Saya telah memeriksa informasi dan asumsi yang akan digunakan untuk membuat prompt.'
                   : 'I have reviewed the information and assumptions (Saya telah memeriksa informasi dan asumsi yang akan digunakan untuk membuat prompt).'

@@ -573,7 +573,8 @@ textarea.asha-prefilled-input {
   cursor: default;
 }
 
-.asha-confirm-checkbox {
+.asha-confirm-checkbox,
+.asha-confirm-checkbox span {
   flex-direction: row;
   align-items: center;
   gap: 0.65rem;
@@ -583,7 +584,7 @@ textarea.asha-prefilled-input {
   border: 1px solid var(--blue-asha);
   border-radius: 12px;
   font-weight: 600;
-  color: #212529;
+  color: #ffffff !important;
 }
 
 /* Floating Pop-up Modal Overlay (#successModal style) */
